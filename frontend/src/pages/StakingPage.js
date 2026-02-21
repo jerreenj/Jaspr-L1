@@ -80,10 +80,10 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
       const amountWei = Math.floor(parseFloat(amount) * 1_000_000_000);
       if (action === "stake") {
         await onStake(selectedValidator.address, amountWei);
-        setResult({ success: true, message: `Staked ${amount} JJ to ${selectedValidator.name}` });
+        setResult({ success: true, message: `Staked ${amount} $JSP to ${selectedValidator.name}` });
       } else {
         await onUnstake(selectedValidator.address, amountWei);
-        setResult({ success: true, message: `Unstaked ${amount} JJ from ${selectedValidator.name}` });
+        setResult({ success: true, message: `Unstaked ${amount} $JSP from ${selectedValidator.name}` });
       }
       setAmount("");
     } catch (e) {
@@ -107,6 +107,14 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
       <h3 className="font-unbounded text-lg font-semibold mb-4">
         {action === "stake" ? "Stake" : "Unstake"} to {selectedValidator.name}
       </h3>
+      
+      {/* APY Display */}
+      {selectedValidator.apy && (
+        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-sm mb-4">
+          <p className="font-mono text-xs text-green-400">ESTIMATED APY</p>
+          <p className="font-unbounded text-2xl text-green-500">{selectedValidator.apy}%</p>
+        </div>
+      )}
       
       {/* Action selector */}
       <div className="grid grid-cols-2 gap-2 mb-4">
@@ -140,13 +148,13 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
       {currentStake > 0 && (
         <div className="p-3 bg-zinc-900 rounded-sm mb-4">
           <p className="font-mono text-xs text-zinc-500">YOUR CURRENT STAKE</p>
-          <p className="font-mono text-lg text-white">{(currentStake / 1_000_000_000).toFixed(4)} JJ</p>
+          <p className="font-mono text-lg text-white">{(currentStake / 1_000_000_000).toFixed(4)} $JSP</p>
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="font-mono text-xs text-zinc-500 block mb-2">AMOUNT (JJ)</label>
+          <label className="font-mono text-xs text-zinc-500 block mb-2">AMOUNT ($JSP)</label>
           <input
             type="number"
             value={amount}
@@ -171,7 +179,7 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin mx-auto" />
           ) : (
-            `${action} JJ`
+            `${action} $JSP`
           )}
         </button>
         
