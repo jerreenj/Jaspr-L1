@@ -36,7 +36,6 @@ pub struct JasprNode {
     state: RwLock<NodeState>,
     
     // Storage
-    database: Arc<Database>,
     block_store: Arc<BlockStore>,
     account_store: Arc<AccountStore>,
     state_tree: Arc<StateTree>,
