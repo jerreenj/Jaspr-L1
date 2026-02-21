@@ -80,8 +80,14 @@ class JasprChain:
         self.proposer_selection = ProposerSelection(self.validator_set)
         self.finality_engine = FinalityEngine(self.validator_set)
         
+        # Slashing - validator misbehavior handling
+        self.slashing = SlashingModule(self.persistence)
+        
         # Execution
         self.executor = ParallelExecutor(self.state)
+        
+        # Move VM - smart contract execution
+        self.move_vm = MoveVM(self.persistence)
         
         # Wallet
         self.account_abstraction = AccountAbstraction()
@@ -92,6 +98,10 @@ class JasprChain:
         
         # Network
         self.mempool = Mempool(self.sentinel)
+        
+        # P2P Network (initialized but not started by default)
+        node_id = sha256_hex(f"jaspr_node_{datetime.now(timezone.utc).timestamp()}")
+        self.p2p = P2PNetwork(node_id=node_id, port=30303)
         
         # Blockchain state
         self.blocks: List[Block] = []
