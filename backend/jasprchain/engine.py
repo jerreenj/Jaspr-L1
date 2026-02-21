@@ -98,15 +98,71 @@ class JasprChain:
         self._total_transactions = 0
         self._start_time = int(datetime.now(timezone.utc).timestamp() * 1000)
         
-        # Initialize
+        # Initialize (with persistence loading)
         self._initialize()
     
     def _initialize(self):
-        """Initialize the blockchain with proper tokenomics"""
+        """Initialize the blockchain - load from persistence or create fresh"""
+        # Try to load existing chain from persistence
+        latest_height = self.persistence.get_latest_height()
+        
+        if latest_height >= 0:
+            # Load existing chain from persistence
+            print(f"[CHAIN] Loading chain from persistence (height: {latest_height})")
+            self._load_from_persistence()
+        else:
+            # Fresh start - create genesis and initialize
+            print("[CHAIN] Fresh start - initializing new chain")
+            self._initialize_fresh()
+    
+    def _load_from_persistence(self):
+        """Load blockchain state from persistent storage"""
+        # Load all blocks
+        block_dicts = self.persistence.get_all_blocks()
+        for block_dict in block_dicts:
+            block = Block.from_dict(block_dict)
+            self.blocks.append(block)
+            self._blocks_by_hash[block.hash] = block
+        
+        # Load state (balances, stakes, etc.)
+        state_keys = self.persistence.get_all_state_keys()
+        for key in state_keys:
+            value = self.persistence.get_state(key)
+            self.state.set(key, value)
+        
+        # Load transaction count
+        self._total_transactions = self.persistence.get_metadata('total_transactions', 0)
+        
+        # Initialize validators (they are rebuilt on load)
+        validators_config = [
+            ("jaspr1validator1", 10_000_000_000_000, "Jaspr Labs"),
+            ("jaspr1validator2", 8_000_000_000_000, "Foundation"),
+            ("jaspr1validator3", 6_000_000_000_000, "Community"),
+            ("jaspr1validator4", 4_000_000_000_000, "Ecosystem"),
+        ]
+        for addr, stake, name in validators_config:
+            self.validator_set.add_validator(addr, stake, name)
+        
+        # Load validator stakes from state
+        for v_addr in self.validator_set.validators:
+            validator = self.validator_set.get_validator(v_addr)
+            if validator:
+                # Get delegated stake from state
+                delegated = self.persistence.get_state(f"validator_delegated:{v_addr}", 0)
+                validator.stake = validator.stake + delegated
+        
+        print(f"[CHAIN] Loaded {len(self.blocks)} blocks, {self._total_transactions} transactions")
+    
+    def _initialize_fresh(self):
+        """Initialize a fresh blockchain"""
         # Create genesis block
         genesis = create_genesis_block()
         self.blocks.append(genesis)
         self._blocks_by_hash[genesis.hash] = genesis
+        
+        # Save genesis to persistence
+        self.persistence.save_block(0, genesis.hash, genesis.to_dict())
+        self.persistence.set_latest_height(0)
         
         # Initialize treasury accounts (Testnet - from Litepaper tokenomics)
         treasury_accounts = {
@@ -120,6 +176,7 @@ class JasprChain:
         
         for addr, balance in treasury_accounts.items():
             self.state.set_account_balance(addr, balance)
+            self.persistence.save_state(f"balance:{addr}", balance)
         
         # Initialize default validators (HyperLiquid style - start with 4)
         validators_config = [
