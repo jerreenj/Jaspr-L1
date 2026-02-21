@@ -1,5 +1,7 @@
 """JasprChain Engine - Main Blockchain Orchestrator
 Ties together all modules into a working blockchain
+
+CORE L1 ONLY - No application layer (DEX, etc.)
 """
 import asyncio
 from typing import Dict, List, Optional, Any
@@ -11,22 +13,22 @@ from .execution import ParallelExecutor, SignedTransaction, Transaction, Transac
 from .state import StateStore
 from .wallet import MPCWallet, AccountAbstraction
 from .sentinel import AISentinel, GuardMode
-from .dex import HybridOrderbook, SettlementEngine, DEXRiskEngine, Order, OrderSide, OrderType
 from .network import Mempool
 from .crypto import generate_wallet, sha256_hex
 
 
 class JasprChain:
-    """Main blockchain engine
+    """Main blockchain engine - Core L1 Only
     
-    Coordinates all modules:
+    Coordinates core modules:
     - Consensus (validators, proposer selection, finality)
     - Execution (parallel transaction processing)
     - State (Sparse Merkle Tree)
     - Wallet (MPC + Account Abstraction)
     - AI Sentinel (risk scoring)
-    - DEX (orderbook, settlement)
     - Network (mempool)
+    
+    NO APPLICATION LAYER (DEX, NFTs, etc.) - those are built on top
     """
     
     # Chain configuration
@@ -52,11 +54,6 @@ class JasprChain:
         
         # AI Sentinel
         self.sentinel = AISentinel(GuardMode.ENFORCED)
-        
-        # DEX
-        self._orderbooks: Dict[str, HybridOrderbook] = {}
-        self.settlement_engine = SettlementEngine(self.state)
-        self.risk_engine = DEXRiskEngine()
         
         # Network
         self.mempool = Mempool(self.sentinel)
@@ -90,10 +87,6 @@ class JasprChain:
         
         for addr, stake, name in validators_config:
             self.validator_set.add_validator(addr, stake, name)
-        
-        # Initialize default DEX market
-        self._orderbooks["JJ/USDC"] = HybridOrderbook("JJ/USDC")
-        self.risk_engine.update_mark_price("JJ/USDC", 1.0)  # Initial price
     
     @property
     def latest_block(self) -> Block:
@@ -225,12 +218,6 @@ class JasprChain:
             receipts=[r.to_receipt(header.height, header.hash()).to_dict() for r in results]
         )
         
-        # Process settlements
-        for tx in pending_txs:
-            if tx.transaction.tx_type in [TransactionType.DEX_ORDER, TransactionType.DEX_SWAP]:
-                # Handle DEX trades (simplified)
-                pass
-        
         # Record for finality
         self.finality_engine.on_block_proposed(block)
         
@@ -286,59 +273,67 @@ class JasprChain:
             block.finalized = True
             block.finality_time_ms = self.finality_engine.get_finality_time(block_hash)
     
-    # DEX Operations
-    def place_order(
-        self,
-        trader: str,
-        market: str,
-        side: str,
-        order_type: str,
-        price: float,
-        quantity: float
-    ) -> tuple:
-        """Place a DEX order"""
-        orderbook = self._orderbooks.get(market)
-        if not orderbook:
-            return None, [], f"Market {market} not found"
+    # Staking Operations
+    def stake(self, delegator: str, validator: str, amount: int) -> tuple:
+        """Stake tokens to a validator"""
+        balance = self.get_balance(delegator)
+        if balance < amount:
+            return False, "Insufficient balance"
         
-        # Validate price against guardrails
-        valid, msg = self.risk_engine.validate_order_price(market, price)
-        if not valid:
-            return None, [], msg
+        validator_obj = self.validator_set.get_validator(validator)
+        if not validator_obj:
+            return False, "Validator not found"
         
-        order = Order(
-            order_id=sha256_hex(f"{trader}:{market}:{datetime.now(timezone.utc).timestamp()}".encode())[:16],
-            trader=trader,
-            market=market,
-            side=OrderSide(side),
-            order_type=OrderType(order_type),
-            price=price,
-            quantity=quantity
-        )
+        # Deduct from balance
+        self.state.set_account_balance(delegator, balance - amount)
         
-        updated_order, trades = orderbook.place_order(order)
+        # Add to stake
+        stake_key = f"stake:{delegator}:{validator}"
+        current_stake = self.state.get(stake_key, 0)
+        self.state.set(stake_key, current_stake + amount)
         
-        # Create settlements for trades
-        settlements = []
-        for trade in trades:
-            settlement = self.settlement_engine.create_settlement(trade)
-            settlements.append(settlement)
+        # Update validator stake
+        validator_obj.stake += amount
         
-        return updated_order, trades, "Order placed"
+        return True, f"Staked {amount} to {validator}"
     
-    def get_orderbook(self, market: str, depth: int = 20) -> dict:
-        """Get orderbook snapshot"""
-        orderbook = self._orderbooks.get(market)
-        if orderbook:
-            return orderbook.get_orderbook_snapshot(depth)
-        return {}
+    def unstake(self, delegator: str, validator: str, amount: int) -> tuple:
+        """Unstake tokens from a validator"""
+        stake_key = f"stake:{delegator}:{validator}"
+        current_stake = self.state.get(stake_key, 0)
+        
+        if current_stake < amount:
+            return False, "Insufficient stake"
+        
+        validator_obj = self.validator_set.get_validator(validator)
+        if not validator_obj:
+            return False, "Validator not found"
+        
+        # Reduce stake
+        self.state.set(stake_key, current_stake - amount)
+        
+        # Return to balance (in real system, would have unbonding period)
+        balance = self.get_balance(delegator)
+        self.state.set_account_balance(delegator, balance + amount)
+        
+        # Update validator stake
+        validator_obj.stake -= amount
+        
+        return True, f"Unstaked {amount} from {validator}"
     
-    def get_recent_trades(self, market: str, limit: int = 50) -> list:
-        """Get recent trades for a market"""
-        orderbook = self._orderbooks.get(market)
-        if orderbook:
-            return orderbook.get_recent_trades(limit)
-        return []
+    def get_stake(self, delegator: str, validator: str) -> int:
+        """Get staked amount"""
+        stake_key = f"stake:{delegator}:{validator}"
+        return self.state.get(stake_key, 0)
+    
+    def get_all_stakes(self, delegator: str) -> Dict[str, int]:
+        """Get all stakes for a delegator"""
+        stakes = {}
+        for validator in self.validator_set.validators:
+            stake = self.get_stake(delegator, validator)
+            if stake > 0:
+                stakes[validator] = stake
+        return stakes
     
     # Query methods
     def get_block(self, height_or_hash) -> Optional[Block]:
@@ -389,11 +384,6 @@ class JasprChain:
             },
             'mempool': self.mempool.get_stats().to_dict(),
             'sentinel': self.sentinel.get_stats(),
-            'dex': {
-                'markets': list(self._orderbooks.keys()),
-                'settlements': self.settlement_engine.get_stats(),
-                'risk_engine': self.risk_engine.get_stats()
-            },
             'finality': {
                 'avg_time_ms': round(avg_finality, 2),
                 'target_ms': self.BLOCK_TIME_MS
