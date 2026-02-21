@@ -1,77 +1,91 @@
 # JasprChain - Product Requirements Document
 
 ## Original Problem Statement
-Build JasprChain - a high-performance Layer 1 blockchain TESTNET with full core features:
-- **Slashing** - Validator misbehavior penalties
-- **P2P Networking** - Peer-to-peer communication layer
-- **Move VM** - Smart contract execution
-- LMDB Persistence - Blocks survive restart
-- 14-day Unbonding Period - Real staking economics
-- $JASPR Tokenomics - From litepaper (1B fixed supply)
-- HyperLiquid-style validators (4 initial)
-- AI Sentinel with ML risk scoring
-- MPC + Account Abstraction wallets
-- <2s deterministic finality
+Build JasprChain - a high-performance Layer 1 blockchain TESTNET with continuous simulation demonstrating real-world usage:
 
-**This is TESTNET/DEVNET - Foundation for applications to be built on top**
+**Core L1 Features:**
+- 20 validators (HyperLiquid-style)
+- Slashing mechanism (double sign, downtime, invalid attestation)
+- P2P networking (5 simulated peers)
+- Move VM (smart contract execution)
+- LMDB persistence (blocks survive restart)
+- 14-day unbonding period
+- $JASPR tokenomics (1B fixed supply from litepaper)
 
-## Key Features Implemented
+**Continuous Simulation:**
+- Random staking activity (1-10K JASPR, random intervals)
+- Automatic slashing detection
+- Move VM contract activity
+- Real-time WebSocket updates
 
-### 1. Slashing Mechanism ✅
-- **Double Signing:** 5% stake slashed, 7-day jail, permanent tombstone
-- **Downtime:** 0.1% stake slashed per window, 1-day jail
-- **Invalid Attestation:** 3% stake slashed, 3-day jail
-- **APIs:**
-  - `GET /api/slashing/stats` - Slashing statistics
-  - `GET /api/slashing/history` - Slashing records
-  - `GET /api/slashing/validator/{address}` - Validator signing info
-  - `POST /api/slashing/unjail/{address}` - Unjail validator
+**This is TESTNET/DEVNET for investor demonstration**
 
-### 2. P2P Networking ✅
-- **Gossip Protocol:** Fanout=6, max_hops=4 for message propagation
-- **Peer Management:** Connect, disconnect, ping/pong, reputation
-- **Message Types:** Handshake, new_block, new_transaction, sync
-- **APIs:**
-  - `GET /api/p2p/info` - Node info (node_id, version, peers)
-  - `GET /api/p2p/peers` - Connected peers list
-  - `GET /api/p2p/stats` - Network statistics
-  - `POST /api/p2p/connect` - Connect to peer
+## What's Running
 
-### 3. Move VM ✅
-- **Standard Library:** JASPR, Coin, Account modules
-- **Functions:** transfer, mint, burn, create_account, balance
-- **Gas Metering:** GAS_UNIT_PRICE = 100 nanoJASPR
-- **Module Deployment:** Custom modules can be deployed
-- **APIs:**
-  - `GET /api/move/modules` - List deployed modules
-  - `GET /api/move/module/{id}` - Get module details
-  - `POST /api/move/execute` - Execute function
-  - `POST /api/move/deploy` - Deploy module
-  - `GET /api/move/estimate-gas` - Gas estimation
-  - `GET /api/move/stats` - VM statistics
+### Real-Time Activity ✅
+- **Blocks:** Produced every 2 seconds, all FINALIZED
+- **Staking:** Random stakes/unstakes (1-10K JASPR) from community pool
+- **Move VM:** Token transfers, account creations
+- **P2P:** 5 simulated peers connected
 
-### 4. LMDB Persistence ✅
-- Blocks, state, unbonding entries persist to `/app/data/jasprchain`
-- Chain continues from last height after restart
+### 20 Validators ✅
+1. Jaspr Labs (~25K JASPR)
+2. Foundation (~15K JASPR)
+3. Community (~7K JASPR)
+4. Ecosystem (~4K JASPR)
+5. Alpha Node - Pi Node (remaining 16)
 
-### 5. 14-Day Unbonding ✅
-- Unstaking triggers 14-day lock period
-- Tokens become claimable after period ends
-
-### 6. $JASPR Tokenomics ✅
-- **Total Supply:** 1,000,000,000 (Fixed - no inflation)
-- **Distribution:**
-  - Community Incentives: 52%
-  - Treasury Reserve: 15%
-  - Liquidity: 10%
-  - Team: 10%
-  - Investors: 8%
-  - Ecosystem: 5%
+### Background Tasks Running
+1. `auto_produce_blocks()` - Every 2 seconds
+2. `simulate_staking_activity()` - Random intervals (5-60s)
+3. `simulate_slashing_detection()` - Every 30-120s
+4. `simulate_move_contract_activity()` - Every 15-45s
 
 ## Test Results
-- **Backend:** 81/81 tests passed (100%)
-- **Frontend:** All tests passed (100%)
-- **Test report:** `/app/test_reports/iteration_5.json`
+- **Backend:** 100% (25 new feature tests passed)
+- **Frontend:** 100% (all pages working)
+- **Test report:** `/app/test_reports/iteration_6.json`
+
+## API Endpoints
+
+### Core
+- `GET /api/health` - Chain health (testnet, height)
+- `GET /api/network/stats` - TPS, validators, transactions
+- `GET /api/blocks` - Block list (persisted=True)
+- `GET /api/validators` - 20 validators with stake
+
+### Tokenomics
+- `GET /api/tokenomics` - JASPR token (1B supply)
+
+### Staking
+- `GET /api/staking/stats/overview` - 20 validators, avg APY
+- `POST /api/staking/stake` - Stake tokens
+- `POST /api/staking/unstake` - Unstake (14-day unbonding)
+- `GET /api/staking/{address}/unbonding` - Unbonding entries
+
+### P2P Network
+- `GET /api/p2p/info` - is_running=true, 5 peers
+- `GET /api/p2p/peers` - Simulated peer list
+- `GET /api/p2p/stats` - Network statistics
+
+### Slashing
+- `GET /api/slashing/stats` - Events, jailed, tombstoned
+- `GET /api/slashing/history` - Slashing records
+- `POST /api/slashing/unjail/{address}` - Unjail validator
+
+### Move VM
+- `GET /api/move/modules` - Stdlib (JASPR, Coin, Account)
+- `POST /api/move/execute` - Execute function
+- `POST /api/move/deploy` - Deploy module
+- `GET /api/move/stats` - functions_called, events
+
+### WebSocket
+- `ws://*/ws` - Real-time events:
+  - `new_block` - New block produced
+  - `stats_update` - Height, TPS, transactions
+  - `staking_update` - Stake/unstake events
+  - `move_event` - Contract activity
+  - `slashing_event` - Slashing detected
 
 ## Architecture
 
@@ -80,70 +94,49 @@ Build JasprChain - a high-performance Layer 1 blockchain TESTNET with full core 
 ├── backend/
 │   ├── jasprchain/
 │   │   ├── consensus/
-│   │   │   ├── slashing.py      # NEW: Slashing module
-│   │   │   ├── validator.py
-│   │   │   └── finality.py
+│   │   │   ├── slashing.py      # Slashing module
+│   │   │   └── validator.py     # 20 validators
 │   │   ├── execution/
-│   │   │   ├── move_vm.py       # NEW: Move VM
-│   │   │   └── parallel.py
+│   │   │   └── move_vm.py       # Move VM + stdlib
 │   │   ├── network/
-│   │   │   ├── p2p.py           # NEW: P2P networking
+│   │   │   ├── p2p.py           # P2P (5 simulated peers)
 │   │   │   └── mempool.py
 │   │   ├── storage/
 │   │   │   └── persistence.py   # LMDB
-│   │   ├── wallet/
-│   │   ├── sentinel/
 │   │   └── engine.py            # Orchestrator
-│   └── server.py                # FastAPI
+│   └── server.py                # FastAPI + 4 background tasks
 ├── frontend/
-│   └── src/pages/               # React dashboard
+│   └── src/                     # React + WebSocket
 ├── data/
 │   └── jasprchain/              # LMDB database
 └── rust-core/                   # Rust boilerplate
 ```
 
-## API Endpoints Summary
-
-### Core
-- Health, network stats, blocks, validators
-
-### Tokenomics
-- `GET /api/tokenomics`
-
-### Staking
-- stake, unstake, validators, unbonding, claim
-
-### Slashing (NEW)
-- stats, history, validator info, unjail
-
-### P2P (NEW)
-- info, peers, stats, connect
-
-### Move VM (NEW)
-- modules, execute, deploy, estimate-gas
-
 ## MOCKED Components (Simulation)
+- P2P peers are SIMULATED (is_simulated=true)
 - Move VM bytecode execution SIMULATED
-- P2P network NOT STARTED (is_running=false)
-- Slashing works but no real consensus trigger
-- Blockchain consensus simulated
-- BLS signatures simulated
+- Staking activity is AUTOMATED SIMULATION
+- Slashing detection is AUTOMATED SIMULATION
+- Blockchain consensus SIMULATED
+- BLS signatures SIMULATED
 
 ## What's Production-Ready
 - All APIs functional
-- State persistence working
+- State persistence (LMDB)
 - Tokenomics from litepaper
-- Staking with APY calculation
+- 20 validators with staking
 - 14-day unbonding period
+- Real-time WebSocket updates
 
 ## Future (For Mainnet)
+- Real libp2p peer connections
 - Real Move bytecode interpreter
-- Start P2P network with real peers
-- Automatic slashing trigger from consensus
-- RocksDB for higher performance
+- Real BLS signatures (blst crate)
+- Automatic slashing from consensus
 - Genesis config file
 
 ---
 *Last Updated: December 2025*
-*Status: TESTNET with Slashing, P2P, Move VM*
-*Test Coverage: 81/81 backend tests passed (100%)*
+*Status: TESTNET with Continuous Simulation*
+*Validators: 20 | Peers: 5 | Blocks: Every 2s*
+*Test Coverage: 100% (25 new tests passed)*
