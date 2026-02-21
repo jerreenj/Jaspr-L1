@@ -126,6 +126,17 @@ async def get_tps():
         "total_transactions": stats['total_transactions']
     }
 
+@api_router.get("/network/persistence")
+async def get_persistence_stats():
+    """Get persistence/database statistics"""
+    db_stats = chain.persistence.get_db_stats()
+    return {
+        "persistence": "lmdb",
+        "db_path": chain.persistence.db_path,
+        "stats": db_stats,
+        "latest_height": chain.persistence.get_latest_height()
+    }
+
 # ------------ Blocks ------------
 
 @api_router.get("/blocks")
@@ -135,7 +146,8 @@ async def get_blocks(limit: int = 20, offset: int = 0):
     return {
         "blocks": [b.to_summary() for b in reversed(blocks)],
         "total": len(chain.blocks),
-        "latest_height": chain.height
+        "latest_height": chain.height,
+        "persisted": True
     }
 
 @api_router.get("/blocks/{height_or_hash}")
