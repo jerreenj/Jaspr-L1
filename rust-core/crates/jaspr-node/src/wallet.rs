@@ -35,7 +35,7 @@ impl Default for WalletConfig {
 }
 
 /// Account in wallet
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct WalletAccount {
     /// Account name/label
     pub name: String,
@@ -49,6 +49,19 @@ pub struct WalletAccount {
     pub index: u32,
     /// Is default account
     pub is_default: bool,
+}
+
+impl std::fmt::Debug for WalletAccount {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WalletAccount")
+            .field("name", &self.name)
+            .field("address", &self.address)
+            .field("public_key", &self.public_key)
+            .field("index", &self.index)
+            .field("is_default", &self.is_default)
+            .field("keypair", &"[HIDDEN]")
+            .finish()
+    }
 }
 
 impl WalletAccount {
