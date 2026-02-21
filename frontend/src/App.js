@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Blocks, Users, Wallet, LineChart, Shield, Settings, 
-  Activity, Menu, X, Zap, TrendingUp, Clock, Database
+  Blocks, Users, Wallet, Shield, Settings, 
+  Activity, Menu, X, Zap, TrendingUp, Clock, Database, Coins
 } from "lucide-react";
 import axios from "axios";
 
@@ -12,7 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import BlockExplorer from "./pages/BlockExplorer";
 import Validators from "./pages/Validators";
 import WalletPage from "./pages/WalletPage";
-import DEXPage from "./pages/DEXPage";
+import StakingPage from "./pages/StakingPage";
 import SentinelPage from "./pages/SentinelPage";
 import MempoolPage from "./pages/MempoolPage";
 
@@ -21,13 +21,13 @@ import "./App.css";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Navigation items
+// Navigation items - CORE L1 ONLY
 const navItems = [
   { path: "/", icon: Activity, label: "Dashboard" },
   { path: "/blocks", icon: Blocks, label: "Blocks" },
   { path: "/validators", icon: Users, label: "Validators" },
   { path: "/wallet", icon: Wallet, label: "Wallet" },
-  { path: "/dex", icon: LineChart, label: "DEX" },
+  { path: "/staking", icon: Coins, label: "Staking" },
   { path: "/sentinel", icon: Shield, label: "AI Sentinel" },
   { path: "/mempool", icon: Database, label: "Mempool" },
 ];
@@ -65,7 +65,7 @@ function Sidebar({ isOpen, setIsOpen }) {
             </div>
             <div>
               <h1 className="font-unbounded font-bold text-xl text-white">JASPR</h1>
-              <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">Chain v0.1</p>
+              <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">L1 Chain v0.1</p>
             </div>
           </Link>
         </div>
@@ -210,7 +210,7 @@ function App() {
                   <Route path="/blocks/:heightOrHash" element={<BlockExplorer />} />
                   <Route path="/validators" element={<Validators />} />
                   <Route path="/wallet" element={<WalletPage />} />
-                  <Route path="/dex" element={<DEXPage />} />
+                  <Route path="/staking" element={<StakingPage />} />
                   <Route path="/sentinel" element={<SentinelPage />} />
                   <Route path="/mempool" element={<MempoolPage />} />
                 </Routes>
