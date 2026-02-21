@@ -280,6 +280,17 @@ export default function StakingPage() {
     });
   };
   
+  const handleClaim = async () => {
+    try {
+      await axios.post(`${API}/staking/${walletAddress}/claim`);
+      // Refresh staking info after claim
+      const response = await axios.get(`${API}/staking/${walletAddress}`);
+      setStakingInfo(response.data);
+    } catch (e) {
+      console.error("Failed to claim:", e);
+    }
+  };
+  
   const getCurrentStake = () => {
     if (!stakingInfo || !selectedValidator) return 0;
     return stakingInfo.stakes?.[selectedValidator.address] || 0;
