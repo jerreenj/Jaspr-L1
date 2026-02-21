@@ -209,15 +209,20 @@ class JasprChain:
         
         if community_balance >= testnet_allocation:
             # Deduct from community pool
-            self.state.set_account_balance(
-                "jaspr1treasury_community", 
-                community_balance - testnet_allocation
-            )
+            new_community_balance = community_balance - testnet_allocation
+            self.state.set_account_balance("jaspr1treasury_community", new_community_balance)
+            self.persistence.save_state("balance:jaspr1treasury_community", new_community_balance)
+            
             # Credit to new wallet
             self.state.set_account_balance(wallet.address, testnet_allocation)
+            self.persistence.save_state(f"balance:{wallet.address}", testnet_allocation)
         else:
             # Fallback for testing if pool depleted
             self.state.set_account_balance(wallet.address, testnet_allocation)
+            self.persistence.save_state(f"balance:{wallet.address}", testnet_allocation)
+        
+        # Save wallet info to persistence
+        self.persistence.save_wallet(wallet.address, wallet.export_public_info())
         
         # Create AA wallet
         self.account_abstraction.get_or_create_wallet(wallet.address)
