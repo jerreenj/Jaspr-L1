@@ -99,3 +99,7 @@ rust-core/target/debug/deps/jaspr_move_vm-8e5688345e59da0f
 rust-core/target/debug/deps/jaspr_state-f3bfca3504970a6b
 rust-core/target/debug/deps/jaspr_consensus-95daafce68910b00
 rust-core/target/debug/deps/jaspr_executor-fb34d6881aecf189
+-e 
+# Environment files
+*.env
+*.env.*
