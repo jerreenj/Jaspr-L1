@@ -67,14 +67,15 @@ impl JasprNode {
         let mut db_config = config.database.clone();
         db_config.path = config.data_dir.join("db").to_string_lossy().to_string();
         
-        let database = Arc::new(
+        let database = 
             Database::open(&db_config)
-                .map_err(|e| format!("Failed to open database: {}", e))?
-        );
+                .map_err(|e| format!("Failed to open database: {}", e))?;
         
-        // Initialize stores
-        let block_store = Arc::new(BlockStore::new(database.clone()));
-        let account_store = Arc::new(AccountStore::new(database.clone()));
+        // Initialize stores (database is cloned internally)
+        let db_for_blocks = database.clone();
+        let db_for_accounts = database.clone();
+        let block_store = Arc::new(BlockStore::new(db_for_blocks));
+        let account_store = Arc::new(AccountStore::new(db_for_accounts));
         let state_tree = Arc::new(StateTree::new());
         
         // Initialize consensus
