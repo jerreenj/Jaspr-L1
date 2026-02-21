@@ -204,6 +204,7 @@ export default function Validators() {
                   )}
                 </div>
               </div>
+              </div>
             </div>
           ))}
         </div>
