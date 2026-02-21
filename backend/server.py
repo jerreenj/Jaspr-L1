@@ -493,6 +493,133 @@ async def set_sentinel_mode(request: SentinelModeRequest):
     chain.sentinel.set_guard_mode(mode)
     return {"success": True, "mode": request.mode}
 
+# ------------ Slashing ------------
+
+@api_router.get("/slashing/stats")
+async def get_slashing_stats():
+    """Get slashing statistics"""
+    return chain.slashing.get_stats()
+
+@api_router.get("/slashing/history")
+async def get_slashing_history(validator: str = None):
+    """Get slashing history"""
+    return {
+        "records": chain.slashing.get_slashing_history(validator),
+        "total": len(chain.slashing.slashing_records)
+    }
+
+@api_router.get("/slashing/validator/{address}")
+async def get_validator_signing_info(address: str):
+    """Get signing info for a validator"""
+    info = chain.slashing.get_validator_signing_info(address)
+    if not info:
+        raise HTTPException(status_code=404, detail="Validator not found")
+    return info
+
+@api_router.post("/slashing/unjail/{address}")
+async def unjail_validator(address: str):
+    """Attempt to unjail a validator"""
+    success, message = chain.slashing.unjail_validator(address, chain.validator_set)
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+    return {"success": True, "message": message}
+
+# ------------ P2P Network ------------
+
+@api_router.get("/p2p/info")
+async def get_p2p_info():
+    """Get P2P network info"""
+    return {
+        "node_id": chain.p2p.node_id,
+        "version": chain.p2p.VERSION,
+        "is_running": chain.p2p.is_running,
+        "connected_peers": len(chain.p2p.peers),
+        "chain_height": chain.height
+    }
+
+@api_router.get("/p2p/peers")
+async def get_peers():
+    """Get connected peers"""
+    return {
+        "peers": chain.p2p.get_peer_list(),
+        "count": len(chain.p2p.peers)
+    }
+
+@api_router.get("/p2p/stats")
+async def get_p2p_stats():
+    """Get P2P statistics"""
+    return chain.p2p.get_stats()
+
+@api_router.post("/p2p/connect")
+async def connect_to_peer(address: str, port: int = 30303):
+    """Connect to a peer"""
+    peer = await chain.p2p.connect_to_peer(address, port)
+    if peer:
+        return {"success": True, "peer": peer.to_dict()}
+    raise HTTPException(status_code=400, detail="Failed to connect to peer")
+
+# ------------ Move VM ------------
+
+@api_router.get("/move/modules")
+async def list_move_modules(address: str = None):
+    """List deployed Move modules"""
+    return {
+        "modules": chain.move_vm.list_modules(address),
+        "total": len(chain.move_vm.modules)
+    }
+
+@api_router.get("/move/module/{module_id:path}")
+async def get_move_module(module_id: str):
+    """Get a specific Move module"""
+    module = chain.move_vm.get_module(module_id)
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+    return module.to_dict()
+
+@api_router.post("/move/deploy")
+async def deploy_move_module(sender: str, name: str, bytecode: str, abi: dict):
+    """Deploy a Move module"""
+    result = chain.move_vm.deploy_module(sender, name, bytecode, abi)
+    if not result.success:
+        raise HTTPException(status_code=400, detail=result.error)
+    return result.to_dict()
+
+@api_router.post("/move/execute")
+async def execute_move_function(
+    sender: str,
+    module_id: str,
+    function_name: str,
+    type_args: list = [],
+    args: list = [],
+    gas_limit: int = None
+):
+    """Execute a Move function"""
+    result = chain.move_vm.execute_function(
+        sender, module_id, function_name, type_args, args, gas_limit
+    )
+    if not result.success:
+        raise HTTPException(status_code=400, detail=result.error)
+    return result.to_dict()
+
+@api_router.get("/move/estimate-gas")
+async def estimate_move_gas(
+    module_id: str,
+    function_name: str,
+    type_args: str = "[]",
+    args: str = "[]"
+):
+    """Estimate gas for a Move function call"""
+    import json
+    type_args_list = json.loads(type_args)
+    args_list = json.loads(args)
+    gas = chain.move_vm.estimate_gas(module_id, function_name, type_args_list, args_list)
+    return {"estimated_gas": gas, "gas_unit_price": chain.move_vm.GAS_UNIT_PRICE}
+
+@api_router.get("/move/stats")
+async def get_move_vm_stats():
+    """Get Move VM statistics"""
+    return chain.move_vm.get_stats()
+
 # ------------ WebSocket ------------
 
 @app.websocket("/ws")
