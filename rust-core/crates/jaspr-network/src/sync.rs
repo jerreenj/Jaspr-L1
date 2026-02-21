@@ -2,15 +2,14 @@
 //!
 //! Handles synchronizing the blockchain state from peers
 
-use jaspr_types::{Block, HashValue, BlockHeight};
+use jaspr_types::{Block, BlockHeight};
 use jaspr_state::BlockStore;
 use crate::peer::{PeerId, PeerManager, PeerInfo};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use parking_lot::RwLock;
-use tokio::sync::mpsc;
-use tracing::{info, warn, debug, error};
+use tracing::{info, warn, debug};
 
 /// Sync configuration
 #[derive(Clone, Debug)]
