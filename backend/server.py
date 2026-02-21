@@ -318,10 +318,10 @@ async def get_staking_stats():
     
     return {
         "total_staked": total_stake,
-        "total_staked_formatted": f"{total_stake / 1_000_000_000_000:.2f}K JASPR",
+        "total_staked_formatted": f"{total_stake} JASPR",
         "active_validators": len(validators),
         "average_apy": round(avg_apy, 2),
-        "network_security_ratio": round((total_stake / (total_stake + 1_000_000_000_000)) * 100, 2),
+        "network_security_ratio": round((total_stake / (total_stake + 1_000_000)) * 100, 2),
         "unbonding_period_days": 14
     }
 
@@ -340,7 +340,7 @@ async def get_validators_for_staking():
             "address": v.address,
             "name": v.name,
             "stake": v.stake,
-            "stake_formatted": f"{v.stake / 1_000_000_000_000:.2f}K JASPR",
+            "stake_formatted": f"{v.stake} JASPR",
             "stake_share": round(stake_share, 2),
             "apy": apy,
             "commission_rate": v.commission_rate / 100,  # Convert basis points to percentage
@@ -723,7 +723,7 @@ async def simulate_staking_activity():
             if validators:
                 # Distribute evenly to validators
                 validator = validators[i % len(validators)]
-                amount = 1000 * 1_000_000_000  # Fixed 1000 JASPR per delegation
+                amount = 1000  # Fixed 1000 JASPR per delegation
                 
                 balance = chain.get_balance(delegator)
                 if balance >= amount:
@@ -762,7 +762,7 @@ async def startup_event():
         ("jaspr1validator16", 1_200_000_000_000, "Mu Node"),
         ("jaspr1validator17", 1_100_000_000_000, "Nu Node"),
         ("jaspr1validator18", 1_050_000_000_000, "Xi Node"),
-        ("jaspr1validator19", 1_000_000_000_000, "Omicron Node"),
+        ("jaspr1validator19", 1_000_000, "Omicron Node"),
         ("jaspr1validator20", 950_000_000_000, "Pi Node"),
     ]
     
