@@ -3,18 +3,21 @@ Ties together all modules into a working blockchain
 
 CORE L1 TESTNET - Foundation for applications to be built on top
 WITH PERSISTENCE (LMDB) - Blocks survive restart
+WITH SLASHING - Validator misbehavior penalties
+WITH P2P - Peer-to-peer networking
+WITH MOVE VM - Smart contract execution
 """
 import asyncio
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timezone, timedelta
 import hashlib
 
-from .consensus import Block, BlockHeader, create_genesis_block, ValidatorSet, ProposerSelection, FinalityEngine
-from .execution import ParallelExecutor, SignedTransaction, Transaction, TransactionType
+from .consensus import Block, BlockHeader, create_genesis_block, ValidatorSet, ProposerSelection, FinalityEngine, SlashingModule
+from .execution import ParallelExecutor, SignedTransaction, Transaction, TransactionType, MoveVM
 from .state import StateStore
 from .wallet import MPCWallet, AccountAbstraction
 from .sentinel import AISentinel, GuardMode
-from .network import Mempool
+from .network import Mempool, P2PNetwork
 from .crypto import generate_wallet, sha256_hex
 from .storage import get_persistence
 
@@ -23,11 +26,12 @@ class JasprChain:
     """Main blockchain engine - Core L1 Testnet
     
     Coordinates core modules:
-    - Consensus (validators, proposer selection, finality)
-    - Execution (parallel transaction processing)
+    - Consensus (validators, proposer selection, finality, SLASHING)
+    - Execution (parallel transaction processing, MOVE VM)
     - State (Sparse Merkle Tree) + LMDB Persistence
     - Wallet (MPC + Account Abstraction)
     - AI Sentinel (risk scoring)
+    - Network (mempool, P2P)
     - Network (mempool)
     
     This is the TESTNET/DEVNET foundation - applications built on top
