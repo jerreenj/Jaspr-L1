@@ -65,7 +65,7 @@ function Sidebar({ isOpen, setIsOpen }) {
             </div>
             <div>
               <h1 className="font-unbounded font-bold text-xl text-white">JASPR</h1>
-              <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">L1 Chain v0.1</p>
+              <p className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">Testnet v0.1</p>
             </div>
           </Link>
         </div>
