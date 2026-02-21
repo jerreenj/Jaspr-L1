@@ -88,6 +88,29 @@ class Block:
             'finality_time_ms': self.finality_time_ms
         }
     
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Block':
+        """Create Block from dictionary (for loading from persistence)"""
+        header_data = data['header']
+        header = BlockHeader(
+            height=header_data['height'],
+            previous_hash=header_data['previous_hash'],
+            timestamp=header_data['timestamp'],
+            proposer=header_data['proposer'],
+            state_root=header_data['state_root'],
+            transactions_root=header_data['transactions_root'],
+            receipts_root=header_data['receipts_root'],
+            committee_signatures=header_data.get('committee_signatures', ''),
+            attestation_count=header_data.get('attestation_count', 0)
+        )
+        return cls(
+            header=header,
+            transactions=data.get('transactions', []),
+            receipts=data.get('receipts', []),
+            finalized=data.get('finalized', False),
+            finality_time_ms=data.get('finality_time_ms')
+        )
+    
     def to_summary(self) -> dict:
         """Compact summary for API responses"""
         return {
