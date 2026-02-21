@@ -11,8 +11,10 @@ def sha256_hash(data: bytes) -> bytes:
     return hashlib.sha256(data).digest()
 
 
-def sha256_hex(data: bytes) -> str:
+def sha256_hex(data) -> str:
     """SHA-256 hash as hex string"""
+    if isinstance(data, str):
+        data = data.encode('utf-8')
     return hashlib.sha256(data).hexdigest()
 
 
