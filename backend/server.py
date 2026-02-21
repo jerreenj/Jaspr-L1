@@ -471,16 +471,17 @@ app.include_router(api_router)
 
 # Background task for auto block production
 async def auto_produce_blocks():
-    """Automatically produce blocks every 2 seconds"""
+    """Automatically produce blocks every 2 seconds - REAL-TIME like actual blockchain"""
     while True:
-        await asyncio.sleep(2)
+        await asyncio.sleep(2)  # 2 second block time
         try:
-            if chain.mempool.get_stats().total_pending > 0:
-                block = await chain.produce_block()
-                await manager.broadcast({
-                    "type": "new_block",
-                    "data": block.to_summary()
-                })
+            # Produce block regardless of pending transactions
+            # Real blockchains produce blocks even if empty
+            block = await chain.produce_block()
+            await manager.broadcast({
+                "type": "new_block",
+                "data": block.to_summary()
+            })
         except Exception as e:
             print(f"Block production error: {e}")
 
