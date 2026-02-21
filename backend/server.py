@@ -55,6 +55,20 @@ class StakeRequest(BaseModel):
 class SentinelModeRequest(BaseModel):
     mode: str  # "passive", "warning", "enforced"
 
+class MoveDeployRequest(BaseModel):
+    sender: str
+    name: str
+    bytecode: str
+    abi: dict
+
+class MoveExecuteRequest(BaseModel):
+    sender: str
+    module_id: str
+    function_name: str
+    type_args: list = []
+    args: list = []
+    gas_limit: int = None
+
 # ============= Chain Instance =============
 
 chain = get_chain()
