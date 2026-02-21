@@ -179,7 +179,7 @@ impl Default for AttestationPool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jaspr_crypto::KeyPair;
+    use jaspr_crypto::{KeyPair, Signer};
     
     fn create_test_attestation(height: BlockHeight) -> Attestation {
         let keypair = KeyPair::generate();
