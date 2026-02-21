@@ -1,12 +1,16 @@
 """
 JasprChain L1 Blockchain API Tests
-Tests for staking, wallet, validators, blocks, sentinel, and mempool APIs
+Tests for tokenomics, staking, wallet, validators, blocks, sentinel, and mempool APIs
+
+UPDATED: Token changed from JSP to JASPR, wallet allocation changed from 1000 to 10,000 JASPR
+Tokenomics from litepaper: 1B total supply, 52% community, 15% treasury, etc.
 """
 import pytest
 import requests
 import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
+
 
 class TestHealthAndNetwork:
     """Health and network stats tests"""
@@ -19,6 +23,7 @@ class TestHealthAndNetwork:
         assert data["status"] == "healthy"
         assert data["chain_id"] == 1
         assert "height" in data
+        assert data["network"] == "testnet"
     
     def test_network_stats(self):
         """Test network statistics endpoint"""
@@ -33,6 +38,7 @@ class TestHealthAndNetwork:
         assert "mempool" in data
         assert "sentinel" in data
         assert "finality" in data
+        assert data["network"] == "testnet"
     
     def test_tps_endpoint(self):
         """Test TPS endpoint"""
@@ -42,6 +48,93 @@ class TestHealthAndNetwork:
         assert "current_tps" in data
         assert "target_tps" in data
         assert data["target_tps"] == 10000
+
+
+class TestTokenomics:
+    """Tokenomics API tests - verifying litepaper values"""
+    
+    def test_tokenomics_endpoint(self):
+        """Test tokenomics endpoint returns correct litepaper values"""
+        response = requests.get(f"{BASE_URL}/api/tokenomics")
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Token info
+        assert data["token"]["symbol"] == "JASPR"
+        assert data["token"]["name"] == "Jaspr"
+        assert data["token"]["decimals"] == 9
+        
+        # Total supply - 1 billion with 9 decimals
+        assert data["supply"]["total"] == 1_000_000_000_000_000_000
+        assert "1,000,000,000 JASPR" in data["supply"]["total_formatted"]
+        
+        # Inflation type
+        assert data["inflation"] == "fixed_supply"
+        assert data["network"] == "testnet"
+    
+    def test_tokenomics_distribution_percentages(self):
+        """Test tokenomics distribution matches litepaper percentages"""
+        response = requests.get(f"{BASE_URL}/api/tokenomics")
+        data = response.json()
+        
+        distribution = data["distribution"]
+        
+        # Verify percentages from litepaper
+        assert distribution["community_incentives"]["percentage"] == 52
+        assert distribution["treasury_reserve"]["percentage"] == 15
+        assert distribution["liquidity_market_making"]["percentage"] == 10
+        assert distribution["team_advisors"]["percentage"] == 10
+        assert distribution["investors"]["percentage"] == 8
+        assert distribution["ecosystem_partnerships"]["percentage"] == 5
+        
+        # Verify total is 100%
+        total_percentage = sum(d["percentage"] for d in distribution.values())
+        assert total_percentage == 100
+    
+    def test_tokenomics_initial_distribution_amounts(self):
+        """Test initial distribution amounts match litepaper"""
+        response = requests.get(f"{BASE_URL}/api/tokenomics")
+        data = response.json()
+        
+        distribution = data["distribution"]
+        
+        # Initial amounts (with 9 decimals)
+        assert distribution["community_incentives"]["initial"] == 520_000_000_000_000_000  # 52%
+        assert distribution["treasury_reserve"]["initial"] == 150_000_000_000_000_000     # 15%
+        assert distribution["liquidity_market_making"]["initial"] == 100_000_000_000_000_000  # 10%
+        assert distribution["team_advisors"]["initial"] == 100_000_000_000_000_000        # 10%
+        assert distribution["investors"]["initial"] == 80_000_000_000_000_000             # 8%
+        assert distribution["ecosystem_partnerships"]["initial"] == 50_000_000_000_000_000  # 5%
+    
+    def test_tokenomics_treasury_addresses(self):
+        """Test treasury addresses are properly defined"""
+        response = requests.get(f"{BASE_URL}/api/tokenomics")
+        data = response.json()
+        
+        treasury = data["treasury_addresses"]
+        assert treasury["community"] == "jaspr1treasury_community"
+        assert treasury["reserve"] == "jaspr1treasury_reserve"
+        assert treasury["liquidity"] == "jaspr1treasury_liquidity"
+        assert treasury["team"] == "jaspr1treasury_team"
+        assert treasury["investors"] == "jaspr1treasury_investors"
+        assert treasury["ecosystem"] == "jaspr1treasury_ecosystem"
+    
+    def test_circulating_supply_increases_with_wallets(self):
+        """Test that circulating supply increases when wallets are created"""
+        # Get initial circulating supply
+        initial_response = requests.get(f"{BASE_URL}/api/tokenomics")
+        initial_circulating = initial_response.json()["supply"]["circulating"]
+        
+        # Create a new wallet (should allocate 10,000 JASPR from community pool)
+        requests.post(f"{BASE_URL}/api/wallets/create")
+        
+        # Get updated circulating supply
+        updated_response = requests.get(f"{BASE_URL}/api/tokenomics")
+        updated_circulating = updated_response.json()["supply"]["circulating"]
+        
+        # Circulating supply should increase by 10,000 JASPR (10,000 * 10^9)
+        expected_increase = 10_000_000_000_000
+        assert updated_circulating >= initial_circulating + expected_increase
 
 
 class TestValidators:
@@ -107,6 +200,8 @@ class TestStaking:
             assert validator["apy"] > 0
             assert "commission_rate" in validator
             assert "stake_share" in validator
+            # Verify JASPR in formatted stake
+            assert "JASPR" in validator["stake_formatted"]
     
     def test_staking_stats_overview(self):
         """Test staking stats overview endpoint"""
@@ -120,18 +215,20 @@ class TestStaking:
         assert data["average_apy"] > 0
         assert "unbonding_period_days" in data
         assert data["unbonding_period_days"] == 14
+        # Verify JASPR in formatted string
+        assert "JASPR" in data["total_staked_formatted"]
     
     def test_stake_tokens(self, test_wallet):
         """Test staking tokens to a validator"""
         wallet_address = test_wallet["address"]
         
-        # Stake tokens
+        # Stake tokens (1000 JASPR)
         stake_response = requests.post(
             f"{BASE_URL}/api/staking/stake",
             json={
                 "delegator": wallet_address,
                 "validator": "jaspr1validator1",
-                "amount": 100000000000  # 100 JSP
+                "amount": 1000_000_000_000  # 1000 JASPR
             }
         )
         assert stake_response.status_code == 200
@@ -144,29 +241,29 @@ class TestStaking:
         assert staking_info.status_code == 200
         info_data = staking_info.json()
         assert "jaspr1validator1" in info_data["stakes"]
-        assert info_data["stakes"]["jaspr1validator1"] == 100000000000
+        assert info_data["stakes"]["jaspr1validator1"] == 1000_000_000_000
     
     def test_unstake_tokens(self, test_wallet):
         """Test unstaking tokens from a validator"""
         wallet_address = test_wallet["address"]
         
-        # First stake some tokens
+        # First stake some tokens (500 JASPR)
         requests.post(
             f"{BASE_URL}/api/staking/stake",
             json={
                 "delegator": wallet_address,
                 "validator": "jaspr1validator2",
-                "amount": 50000000000  # 50 JSP
+                "amount": 500_000_000_000  # 500 JASPR
             }
         )
         
-        # Now unstake
+        # Now unstake (200 JASPR)
         unstake_response = requests.post(
             f"{BASE_URL}/api/staking/unstake",
             json={
                 "delegator": wallet_address,
                 "validator": "jaspr1validator2",
-                "amount": 20000000000  # 20 JSP
+                "amount": 200_000_000_000  # 200 JASPR
             }
         )
         assert unstake_response.status_code == 200
@@ -174,22 +271,22 @@ class TestStaking:
         assert data["success"] == True
         assert "Unstaked" in data["message"]
         
-        # Verify remaining stake
+        # Verify remaining stake (300 JASPR)
         staking_info = requests.get(f"{BASE_URL}/api/staking/{wallet_address}")
         info_data = staking_info.json()
-        assert info_data["stakes"]["jaspr1validator2"] == 30000000000  # 50 - 20 = 30
+        assert info_data["stakes"]["jaspr1validator2"] == 300_000_000_000  # 500 - 200 = 300
     
     def test_stake_insufficient_balance(self, test_wallet):
         """Test staking with insufficient balance"""
         wallet_address = test_wallet["address"]
         
-        # Try to stake more than balance (wallet has 1000 JSP)
+        # Try to stake more than balance (wallet has 10,000 JASPR)
         response = requests.post(
             f"{BASE_URL}/api/staking/stake",
             json={
                 "delegator": wallet_address,
                 "validator": "jaspr1validator1",
-                "amount": 2000000000000  # 2000 JSP - more than balance
+                "amount": 20000_000_000_000  # 20,000 JASPR - more than balance
             }
         )
         assert response.status_code == 400
@@ -205,11 +302,22 @@ class TestStaking:
             json={
                 "delegator": wallet_address,
                 "validator": "jaspr1validator3",
-                "amount": 100000000000
+                "amount": 100_000_000_000
             }
         )
         assert response.status_code == 400
         assert "Insufficient stake" in response.json()["detail"]
+    
+    def test_dynamic_apy_calculation(self):
+        """Test that APY varies by validator based on stake share"""
+        response = requests.get(f"{BASE_URL}/api/staking/validators")
+        data = response.json()
+        
+        # All validators should have APY > 0
+        for validator in data["validators"]:
+            assert validator["apy"] > 0
+            # APY should be reasonable (between 5% and 15%)
+            assert 5 <= validator["apy"] <= 15
 
 
 class TestWallets:
@@ -226,6 +334,22 @@ class TestWallets:
         assert data["type"] == "mpc_wallet"
         assert data["threshold"] == "2-of-3"
     
+    def test_wallet_receives_10000_jaspr(self):
+        """Test new wallet receives 10,000 JASPR from community pool"""
+        # Create wallet
+        create_response = requests.post(f"{BASE_URL}/api/wallets/create")
+        wallet = create_response.json()
+        
+        # Get wallet details
+        response = requests.get(f"{BASE_URL}/api/wallets/{wallet['address']}")
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Should have 10,000 JASPR (10,000 * 10^9)
+        assert data["balance"] == 10_000_000_000_000
+        assert "10000" in data["balance_formatted"]
+        assert "JASPR" in data["balance_formatted"]
+    
     def test_get_wallet_details(self):
         """Test getting wallet details"""
         # Create wallet first
@@ -237,8 +361,8 @@ class TestWallets:
         assert response.status_code == 200
         data = response.json()
         assert data["address"] == wallet["address"]
-        assert data["balance"] == 1000000000000  # Initial balance 1000 JSP
-        assert "JSP" in data["balance_formatted"]
+        assert data["balance"] == 10_000_000_000_000  # 10,000 JASPR
+        assert "JASPR" in data["balance_formatted"]
         assert data["mpc_wallet"] is not None
         assert data["aa_wallet"] is not None
     
@@ -253,8 +377,8 @@ class TestWallets:
         assert response.status_code == 200
         data = response.json()
         assert data["address"] == wallet["address"]
-        assert data["balance"] == 1000000000000
-        assert "JSP" in data["balance_formatted"]
+        assert data["balance"] == 10_000_000_000_000  # 10,000 JASPR
+        assert "JASPR" in data["balance_formatted"]
 
 
 class TestBlocks:
@@ -368,13 +492,13 @@ class TestTransactions:
         recipient_response = requests.post(f"{BASE_URL}/api/wallets/create")
         recipient = recipient_response.json()
         
-        # Create transfer
+        # Create transfer (100 JASPR)
         response = requests.post(
             f"{BASE_URL}/api/transactions/transfer",
             json={
                 "sender": sender["address"],
                 "recipient": recipient["address"],
-                "amount": 10000000000  # 10 JSP
+                "amount": 100_000_000_000  # 100 JASPR
             }
         )
         assert response.status_code == 200
@@ -385,36 +509,102 @@ class TestTransactions:
 
 
 class TestTokenSymbol:
-    """Tests to verify $JSP token symbol is used throughout"""
+    """Tests to verify JASPR token symbol is used throughout (not JSP or JJ)"""
     
-    def test_wallet_balance_shows_jsp(self):
-        """Verify wallet balance shows $JSP not JJ"""
+    def test_wallet_balance_shows_jaspr(self):
+        """Verify wallet balance shows JASPR not JSP or JJ"""
         response = requests.post(f"{BASE_URL}/api/wallets/create")
         wallet = response.json()
         
         details = requests.get(f"{BASE_URL}/api/wallets/{wallet['address']}")
         data = details.json()
         
-        # Should show JSP, not JJ
-        assert "JSP" in data["balance_formatted"]
+        # Should show JASPR, not JSP or JJ
+        assert "JASPR" in data["balance_formatted"]
+        assert "JSP" not in data["balance_formatted"] or "JASPR" in data["balance_formatted"]
         assert "JJ" not in data["balance_formatted"]
     
-    def test_staking_stats_shows_jsp(self):
-        """Verify staking stats shows $JSP"""
+    def test_staking_stats_shows_jaspr(self):
+        """Verify staking stats shows JASPR"""
         response = requests.get(f"{BASE_URL}/api/staking/stats/overview")
         data = response.json()
         
-        assert "JSP" in data["total_staked_formatted"]
+        assert "JASPR" in data["total_staked_formatted"]
         assert "JJ" not in data["total_staked_formatted"]
     
-    def test_validators_stake_shows_jsp(self):
-        """Verify validators stake shows $JSP"""
+    def test_validators_stake_shows_jaspr(self):
+        """Verify validators stake shows JASPR"""
         response = requests.get(f"{BASE_URL}/api/staking/validators")
         data = response.json()
         
         for validator in data["validators"]:
-            assert "JSP" in validator["stake_formatted"]
+            assert "JASPR" in validator["stake_formatted"]
             assert "JJ" not in validator["stake_formatted"]
+    
+    def test_tokenomics_shows_jaspr(self):
+        """Verify tokenomics endpoint shows JASPR"""
+        response = requests.get(f"{BASE_URL}/api/tokenomics")
+        data = response.json()
+        
+        assert data["token"]["symbol"] == "JASPR"
+        assert "JASPR" in data["supply"]["total_formatted"]
+        assert "JASPR" in data["supply"]["circulating_formatted"]
+
+
+class TestFullStakingFlow:
+    """End-to-end staking flow tests"""
+    
+    def test_full_staking_flow(self):
+        """Test complete staking flow: create wallet -> stake -> unstake"""
+        # 1. Create wallet
+        wallet_response = requests.post(f"{BASE_URL}/api/wallets/create")
+        assert wallet_response.status_code == 200
+        wallet = wallet_response.json()
+        wallet_address = wallet["address"]
+        
+        # 2. Verify wallet has 10,000 JASPR
+        balance_response = requests.get(f"{BASE_URL}/api/wallets/{wallet_address}")
+        assert balance_response.json()["balance"] == 10_000_000_000_000
+        
+        # 3. Stake 1000 JASPR to validator
+        stake_response = requests.post(
+            f"{BASE_URL}/api/staking/stake",
+            json={
+                "delegator": wallet_address,
+                "validator": "jaspr1validator1",
+                "amount": 1000_000_000_000  # 1000 JASPR
+            }
+        )
+        assert stake_response.status_code == 200
+        assert stake_response.json()["success"] == True
+        
+        # 4. Verify stake recorded
+        staking_info = requests.get(f"{BASE_URL}/api/staking/{wallet_address}")
+        assert staking_info.json()["stakes"]["jaspr1validator1"] == 1000_000_000_000
+        
+        # 5. Verify balance reduced
+        balance_after_stake = requests.get(f"{BASE_URL}/api/wallets/{wallet_address}")
+        assert balance_after_stake.json()["balance"] == 9000_000_000_000  # 10000 - 1000
+        
+        # 6. Unstake 500 JASPR
+        unstake_response = requests.post(
+            f"{BASE_URL}/api/staking/unstake",
+            json={
+                "delegator": wallet_address,
+                "validator": "jaspr1validator1",
+                "amount": 500_000_000_000  # 500 JASPR
+            }
+        )
+        assert unstake_response.status_code == 200
+        assert unstake_response.json()["success"] == True
+        
+        # 7. Verify stake reduced
+        staking_info_after = requests.get(f"{BASE_URL}/api/staking/{wallet_address}")
+        assert staking_info_after.json()["stakes"]["jaspr1validator1"] == 500_000_000_000
+        
+        # 8. Verify balance increased
+        balance_after_unstake = requests.get(f"{BASE_URL}/api/wallets/{wallet_address}")
+        assert balance_after_unstake.json()["balance"] == 9500_000_000_000  # 9000 + 500
 
 
 if __name__ == "__main__":
