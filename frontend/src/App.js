@@ -98,8 +98,8 @@ function Sidebar({ isOpen, setIsOpen }) {
         {/* Network Status */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-zinc-800">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="font-mono text-xs text-zinc-500">Mainnet Connected</span>
+            <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+            <span className="font-mono text-xs text-yellow-500">Testnet Connected</span>
           </div>
         </div>
       </motion.aside>
