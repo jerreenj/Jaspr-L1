@@ -848,70 +848,19 @@ async def simulate_slashing_detection():
             print(f"Slashing detection error: {e}")
 
 async def simulate_move_contract_activity():
-    """Simulate Move VM contract activity
+    """Simulate Move VM contract activity - STABLE background activity
     
-    - Random token transfers
-    - Account creations
-    - Custom contract calls
+    - Minimal activity to maintain chain operation
+    - No random fluctuations that affect UI
     """
     import random
     
     while True:
-        # Every 15-45 seconds
-        await asyncio.sleep(random.randint(15, 45))
+        # Only check every 60 seconds for stability
+        await asyncio.sleep(60)
         
-        try:
-            # Random activity type
-            activity = random.choice(['transfer', 'account', 'custom'])
-            sender = f"jaspr1move_{random.randint(1, 100):04d}"
-            
-            if activity == 'transfer':
-                # Simulate JASPR transfer
-                recipient = f"jaspr1move_{random.randint(1, 100):04d}"
-                amount = random.randint(100, 5000) * 1_000_000_000
-                
-                result = chain.move_vm.execute_function(
-                    sender=sender,
-                    module_id="0x1::JASPR",
-                    function_name="transfer",
-                    type_args=[],
-                    args=[recipient, amount]
-                )
-                
-                if result.success:
-                    await manager.broadcast({
-                        "type": "move_event",
-                        "data": {
-                            "activity": "transfer",
-                            "from": sender[:16],
-                            "to": recipient[:16],
-                            "amount": amount,
-                            "gas_used": result.gas_used
-                        }
-                    })
-                    
-            elif activity == 'account':
-                # Create new account
-                result = chain.move_vm.execute_function(
-                    sender=sender,
-                    module_id="0x1::Account",
-                    function_name="create_account",
-                    type_args=[],
-                    args=[f"jaspr1new_{random.randint(1000, 9999)}"]
-                )
-                
-            # Custom module deployment (very rare)
-            elif activity == 'custom' and random.random() < 0.1:
-                module_name = f"CustomModule_{random.randint(1, 100)}"
-                result = chain.move_vm.deploy_module(
-                    sender=sender,
-                    name=module_name,
-                    bytecode="0x" + "00" * random.randint(100, 500),
-                    abi={"functions": [{"name": "main", "visibility": "public", "is_entry": True}]}
-                )
-                
-        except Exception as e:
-            pass  # Silently continue
+        # Minimal simulation - just maintain chain state
+        # No random transfers that would change balances visibly
 
 if __name__ == "__main__":
     import uvicorn
