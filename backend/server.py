@@ -784,11 +784,154 @@ async def startup_event():
     
     print(f"[STARTUP] Initialized {len(chain.validator_set.validators)} validators")
     
+    # Start P2P network with simulated peers
+    await chain.p2p.start()
+    
+    # Add simulated peers (representing other testnet nodes)
+    simulated_peers = [
+        ("peer_alpha", "10.0.0.1", 30303, True),
+        ("peer_beta", "10.0.0.2", 30303, True),
+        ("peer_gamma", "10.0.0.3", 30303, False),
+        ("peer_delta", "10.0.0.4", 30303, False),
+        ("peer_epsilon", "10.0.0.5", 30303, False),
+    ]
+    
+    from jasprchain.network.p2p import Peer
+    from datetime import datetime, timezone
+    now = int(datetime.now(timezone.utc).timestamp() * 1000)
+    
+    for peer_id, addr, port, is_validator in simulated_peers:
+        peer = Peer(
+            peer_id=peer_id,
+            address=addr,
+            port=port,
+            connected_at=now,
+            last_seen=now,
+            latency_ms=random.randint(10, 100),
+            version="0.1.0",
+            chain_height=chain.height,
+            is_validator=is_validator,
+            reputation=random.randint(80, 100)
+        )
+        chain.p2p.peers[peer_id] = peer
+    
+    print(f"[STARTUP] P2P network started with {len(chain.p2p.peers)} simulated peers")
+    
     # Start background tasks
     asyncio.create_task(auto_produce_blocks())
     asyncio.create_task(simulate_staking_activity())
+    asyncio.create_task(simulate_slashing_detection())
+    asyncio.create_task(simulate_move_contract_activity())
     
-    print("[STARTUP] Background tasks started: block production, staking simulation")
+    print("[STARTUP] Background tasks started: blocks, staking, slashing, contracts")
+
+async def simulate_slashing_detection():
+    """Simulate automatic slashing detection
+    
+    - Randomly detect downtime (validators missing blocks)
+    - Very rare double-sign detection (for demo purposes)
+    """
+    import random
+    
+    while True:
+        # Check every 30-120 seconds
+        await asyncio.sleep(random.randint(30, 120))
+        
+        try:
+            validators = chain.validator_set.get_active_validators()
+            if not validators:
+                continue
+            
+            # Simulate block signing tracking
+            for validator in validators:
+                # Record that validator signed a block (most of the time)
+                if random.random() < 0.95:  # 95% chance to sign
+                    chain.slashing.record_block_signature(
+                        validator.address, 
+                        chain.height, 
+                        chain.blocks[-1].hash if chain.blocks else "genesis"
+                    )
+                else:
+                    # Missed block
+                    chain.slashing.record_missed_block(validator.address, chain.height)
+            
+            # Process any pending evidence (very rare)
+            records = chain.slashing.process_pending_evidence(chain.validator_set)
+            for record in records:
+                print(f"[SLASH] {record.slash_type.value}: {record.validator[:16]}... slashed {record.amount_slashed/1e9:.0f} JASPR")
+                await manager.broadcast({
+                    "type": "slashing_event",
+                    "data": record.to_dict()
+                })
+                
+        except Exception as e:
+            print(f"Slashing detection error: {e}")
+
+async def simulate_move_contract_activity():
+    """Simulate Move VM contract activity
+    
+    - Random token transfers
+    - Account creations
+    - Custom contract calls
+    """
+    import random
+    
+    while True:
+        # Every 15-45 seconds
+        await asyncio.sleep(random.randint(15, 45))
+        
+        try:
+            # Random activity type
+            activity = random.choice(['transfer', 'account', 'custom'])
+            sender = f"jaspr1move_{random.randint(1, 100):04d}"
+            
+            if activity == 'transfer':
+                # Simulate JASPR transfer
+                recipient = f"jaspr1move_{random.randint(1, 100):04d}"
+                amount = random.randint(100, 5000) * 1_000_000_000
+                
+                result = chain.move_vm.execute_function(
+                    sender=sender,
+                    module_id="0x1::JASPR",
+                    function_name="transfer",
+                    type_args=[],
+                    args=[recipient, amount]
+                )
+                
+                if result.success:
+                    await manager.broadcast({
+                        "type": "move_event",
+                        "data": {
+                            "activity": "transfer",
+                            "from": sender[:16],
+                            "to": recipient[:16],
+                            "amount": amount,
+                            "gas_used": result.gas_used
+                        }
+                    })
+                    
+            elif activity == 'account':
+                # Create new account
+                result = chain.move_vm.execute_function(
+                    sender=sender,
+                    module_id="0x1::Account",
+                    function_name="create_account",
+                    type_args=[],
+                    args=[f"jaspr1new_{random.randint(1000, 9999)}"]
+                )
+                
+            # Custom module deployment (very rare)
+            elif activity == 'custom' and random.random() < 0.1:
+                module_name = f"CustomModule_{random.randint(1, 100)}"
+                result = chain.move_vm.deploy_module(
+                    sender=sender,
+                    name=module_name,
+                    bytecode="0x" + "00" * random.randint(100, 500),
+                    abi={"functions": [{"name": "main", "visibility": "public", "is_entry": True}]}
+                )
+                
+        except Exception as e:
+            pass  # Silently continue
 
 if __name__ == "__main__":
     import uvicorn
