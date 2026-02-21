@@ -15,3 +15,5 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 borsh = { workspace = true }
 parking_lot = "0.12"
+hex = { workspace = true }
+rand = { workspace = true }
