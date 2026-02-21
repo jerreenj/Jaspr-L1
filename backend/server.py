@@ -236,7 +236,7 @@ async def get_wallet(address: str):
     return {
         "address": address,
         "balance": balance,
-        "balance_formatted": f"{balance / 1_000_000_000:.4f} JASPR",
+        "balance_formatted": f"{balance} JASPR",
         "mpc_wallet": wallet.export_public_info() if wallet else None,
         "aa_wallet": aa_wallet.to_dict() if aa_wallet else None,
         "stakes": stakes,
@@ -250,7 +250,7 @@ async def get_balance(address: str):
     return {
         "address": address,
         "balance": balance,
-        "balance_formatted": f"{balance / 1_000_000_000:.4f} JASPR"
+        "balance_formatted": f"{balance} JASPR"
     }
 
 # ------------ Transactions ------------

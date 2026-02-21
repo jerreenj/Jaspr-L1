@@ -57,8 +57,8 @@ class JasprChain:
     
     # $JASPR Tokenomics (from Litepaper)
     TOKEN_SYMBOL = "JASPR"
-    TOTAL_SUPPLY = 1_000_000_000_000_000_000  # 1 billion with 9 decimals
-    DECIMALS = 9
+    TOTAL_SUPPLY = 1_000_000_000  # 1 billion JASPR (no decimals)
+    DECIMALS = 0
     
     # Distribution (in base units)
     COMMUNITY_INCENTIVES = 520_000_000_000_000_000  # 52%
