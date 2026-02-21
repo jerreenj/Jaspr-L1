@@ -478,7 +478,56 @@ class JasprChain:
                 'avg_time_ms': round(avg_finality, 2),
                 'target_ms': self.BLOCK_TIME_MS
             },
-            'uptime_ms': uptime
+            'uptime_ms': uptime,
+            'network': 'testnet'
+        }
+    
+    def get_tokenomics(self) -> dict:
+        """Get $JASPR tokenomics info"""
+        # Get current treasury balances
+        treasury_balances = {
+            'community_incentives': self.state.get_account_balance("jaspr1treasury_community"),
+            'treasury_reserve': self.state.get_account_balance("jaspr1treasury_reserve"),
+            'liquidity_market_making': self.state.get_account_balance("jaspr1treasury_liquidity"),
+            'team_advisors': self.state.get_account_balance("jaspr1treasury_team"),
+            'investors': self.state.get_account_balance("jaspr1treasury_investors"),
+            'ecosystem_partnerships': self.state.get_account_balance("jaspr1treasury_ecosystem"),
+        }
+        
+        # Calculate circulating supply (total - treasury balances)
+        treasury_total = sum(treasury_balances.values())
+        circulating = self.TOTAL_SUPPLY - treasury_total
+        
+        return {
+            'token': {
+                'symbol': self.TOKEN_SYMBOL,
+                'name': 'Jaspr',
+                'decimals': self.DECIMALS,
+            },
+            'supply': {
+                'total': self.TOTAL_SUPPLY,
+                'total_formatted': f"{self.TOTAL_SUPPLY / 10**self.DECIMALS:,.0f} JASPR",
+                'circulating': circulating,
+                'circulating_formatted': f"{circulating / 10**self.DECIMALS:,.0f} JASPR",
+            },
+            'distribution': {
+                'community_incentives': {'percentage': 52, 'initial': self.COMMUNITY_INCENTIVES, 'current': treasury_balances['community_incentives']},
+                'treasury_reserve': {'percentage': 15, 'initial': self.TREASURY_RESERVE, 'current': treasury_balances['treasury_reserve']},
+                'liquidity_market_making': {'percentage': 10, 'initial': self.LIQUIDITY_MARKET_MAKING, 'current': treasury_balances['liquidity_market_making']},
+                'team_advisors': {'percentage': 10, 'initial': self.TEAM_ADVISORS, 'current': treasury_balances['team_advisors']},
+                'investors': {'percentage': 8, 'initial': self.INVESTORS, 'current': treasury_balances['investors']},
+                'ecosystem_partnerships': {'percentage': 5, 'initial': self.ECOSYSTEM_PARTNERSHIPS, 'current': treasury_balances['ecosystem_partnerships']},
+            },
+            'treasury_addresses': {
+                'community': 'jaspr1treasury_community',
+                'reserve': 'jaspr1treasury_reserve',
+                'liquidity': 'jaspr1treasury_liquidity',
+                'team': 'jaspr1treasury_team',
+                'investors': 'jaspr1treasury_investors',
+                'ecosystem': 'jaspr1treasury_ecosystem',
+            },
+            'inflation': 'fixed_supply',
+            'network': 'testnet'
         }
 
 
