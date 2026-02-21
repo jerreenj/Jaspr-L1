@@ -6,7 +6,7 @@ use jaspr_types::{
     Account, StateChange,
 };
 use jaspr_state::{AccountStore, StateTree};
-use jaspr_crypto::verify_transaction;
+use jaspr_crypto::signing::verify_transaction;
 use crate::gas::{GasMeter, GasConfig, GasError};
 use crate::vm_adapter::{VmAdapter, VmContext, VmOutput, NullVmAdapter};
 use std::sync::Arc;

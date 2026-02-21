@@ -18,7 +18,7 @@ pub use hash::{Hash, HashValue, Hasher};
 pub use block::{Block, BlockHeader, BlockBody};
 pub use transaction::{Transaction, SignedTransaction, TransactionType, TransactionPayload};
 pub use account::{Account, AccountState, Balance, ValidatorInfo};
-pub use receipt::{TransactionReceipt, ExecutionStatus};
+pub use receipt::{TransactionReceipt, ExecutionStatus, StateChange};
 pub use error::JasprError;
 
 /// Chain ID for network identification
