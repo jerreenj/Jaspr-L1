@@ -149,10 +149,10 @@ class JasprChain:
         
         # Initialize validators (they are rebuilt on load)
         validators_config = [
-            ("jaspr1validator1", 10_000_000_000_000, "Jaspr Labs"),
-            ("jaspr1validator2", 8_000_000_000_000, "Foundation"),
-            ("jaspr1validator3", 6_000_000_000_000, "Community"),
-            ("jaspr1validator4", 4_000_000_000_000, "Ecosystem"),
+            ("jaspr1validator1", 100_000, "Jaspr Labs"),
+            ("jaspr1validator2", 80_000, "Foundation"),
+            ("jaspr1validator3", 60_000, "Community"),
+            ("jaspr1validator4", 40_000, "Ecosystem"),
         ]
         for addr, stake, name in validators_config:
             self.validator_set.add_validator(addr, stake, name)
@@ -197,10 +197,10 @@ class JasprChain:
         
         # Initialize default validators (HyperLiquid style - start with 4)
         validators_config = [
-            ("jaspr1validator1", 10_000_000_000_000, "Jaspr Labs"),
-            ("jaspr1validator2", 8_000_000_000_000, "Foundation"),
-            ("jaspr1validator3", 6_000_000_000_000, "Community"),
-            ("jaspr1validator4", 4_000_000_000_000, "Ecosystem"),
+            ("jaspr1validator1", 100_000, "Jaspr Labs"),
+            ("jaspr1validator2", 80_000, "Foundation"),
+            ("jaspr1validator3", 60_000, "Community"),
+            ("jaspr1validator4", 40_000, "Ecosystem"),
         ]
         
         for addr, stake, name in validators_config:
