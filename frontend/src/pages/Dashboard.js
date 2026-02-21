@@ -216,7 +216,7 @@ export default function Dashboard({ networkStats }) {
             <span className="gradient-text">JasprChain</span> Dashboard
           </h1>
           <p className="font-manrope text-zinc-400 max-w-xl">
-            High-performance L1 blockchain with AI-protected safety, hybrid DEX settlement, and <2s finality.
+            High-performance L1 blockchain with AI-protected safety, hybrid DEX settlement, and under 2s finality.
           </p>
         </div>
       </div>
