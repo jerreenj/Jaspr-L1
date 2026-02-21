@@ -666,13 +666,129 @@ async def auto_produce_blocks():
                 "type": "new_block",
                 "data": block.to_summary()
             })
+            
+            # Also broadcast network stats update
+            await manager.broadcast({
+                "type": "stats_update",
+                "data": {
+                    "height": chain.height,
+                    "tps": chain.get_network_stats()['tps'],
+                    "total_transactions": chain._total_transactions,
+                    "total_staked": chain.validator_set.total_stake()
+                }
+            })
         except Exception as e:
             print(f"Block production error: {e}")
+
+# Background task for continuous staking simulation
+async def simulate_staking_activity():
+    """Simulate random staking activity to show testnet usage
+    
+    - Random amounts: 1-10,000 JASPR
+    - Random intervals: varies
+    - Uses community pool (up to 500M tokens)
+    - Creates realistic testnet activity
+    """
+    import random
+    
+    # Pool of simulated addresses
+    simulated_addresses = [f"jaspr1sim_{i:04d}" for i in range(1, 101)]
+    
+    # Initialize simulated addresses with balance from community pool
+    initial_allocation = 5_000_000_000_000_000  # 5M JASPR per simulated address
+    for addr in simulated_addresses[:20]:  # Initialize first 20
+        balance = chain.get_balance(addr)
+        if balance == 0:
+            community_balance = chain.state.get_account_balance("jaspr1treasury_community")
+            if community_balance >= initial_allocation:
+                chain.state.set_account_balance("jaspr1treasury_community", community_balance - initial_allocation)
+                chain.state.set_account_balance(addr, initial_allocation)
+                chain.persistence.save_state(f"balance:{addr}", initial_allocation)
+    
+    while True:
+        # Random interval: 5-60 seconds
+        wait_time = random.randint(5, 60)
+        await asyncio.sleep(wait_time)
+        
+        try:
+            # Pick random simulated address
+            delegator = random.choice(simulated_addresses[:20])
+            
+            # Pick random validator
+            validators = chain.validator_set.get_active_validators()
+            if not validators:
+                continue
+            validator = random.choice(validators)
+            
+            # Random amount: 1-10,000 JASPR (in base units)
+            amount = random.randint(1, 10000) * 1_000_000_000  # Convert to base units
+            
+            # Random action: 70% stake, 30% unstake
+            action = random.choices(['stake', 'unstake'], weights=[70, 30])[0]
+            
+            if action == 'stake':
+                balance = chain.get_balance(delegator)
+                if balance >= amount:
+                    success, msg = chain.stake(delegator, validator.address, amount)
+                    if success:
+                        print(f"[SIM] Staked {amount/1e9:.0f} JASPR from {delegator[:16]} to {validator.name}")
+            else:
+                stake = chain.get_stake(delegator, validator.address)
+                if stake >= amount:
+                    success, msg = chain.unstake(delegator, validator.address, amount)
+                    if success:
+                        print(f"[SIM] Unstaked {amount/1e9:.0f} JASPR from {delegator[:16]} from {validator.name}")
+            
+            # Broadcast staking update
+            await manager.broadcast({
+                "type": "staking_update",
+                "data": {
+                    "action": action,
+                    "delegator": delegator[:16] + "...",
+                    "validator": validator.name,
+                    "amount": amount,
+                    "total_staked": chain.validator_set.total_stake()
+                }
+            })
+            
+        except Exception as e:
+            print(f"Staking simulation error: {e}")
 
 @app.on_event("startup")
 async def startup_event():
     """Start background tasks"""
+    # Initialize additional validators (up to 20)
+    additional_validators = [
+        ("jaspr1validator5", 3_500_000_000_000, "Alpha Node"),
+        ("jaspr1validator6", 3_200_000_000_000, "Beta Node"),
+        ("jaspr1validator7", 2_900_000_000_000, "Gamma Node"),
+        ("jaspr1validator8", 2_600_000_000_000, "Delta Node"),
+        ("jaspr1validator9", 2_300_000_000_000, "Epsilon Node"),
+        ("jaspr1validator10", 2_100_000_000_000, "Zeta Node"),
+        ("jaspr1validator11", 1_900_000_000_000, "Eta Node"),
+        ("jaspr1validator12", 1_700_000_000_000, "Theta Node"),
+        ("jaspr1validator13", 1_500_000_000_000, "Iota Node"),
+        ("jaspr1validator14", 1_400_000_000_000, "Kappa Node"),
+        ("jaspr1validator15", 1_300_000_000_000, "Lambda Node"),
+        ("jaspr1validator16", 1_200_000_000_000, "Mu Node"),
+        ("jaspr1validator17", 1_100_000_000_000, "Nu Node"),
+        ("jaspr1validator18", 1_050_000_000_000, "Xi Node"),
+        ("jaspr1validator19", 1_000_000_000_000, "Omicron Node"),
+        ("jaspr1validator20", 950_000_000_000, "Pi Node"),
+    ]
+    
+    for addr, stake, name in additional_validators:
+        if not chain.validator_set.get_validator(addr):
+            chain.validator_set.add_validator(addr, stake, name)
+            chain.slashing.register_validator(addr, chain.height)
+    
+    print(f"[STARTUP] Initialized {len(chain.validator_set.validators)} validators")
+    
+    # Start background tasks
     asyncio.create_task(auto_produce_blocks())
+    asyncio.create_task(simulate_staking_activity())
+    
+    print("[STARTUP] Background tasks started: block production, staking simulation")
 
 if __name__ == "__main__":
     import uvicorn
