@@ -757,6 +757,8 @@ async def simulate_staking_activity():
 @app.on_event("startup")
 async def startup_event():
     """Start background tasks"""
+    import random
+    
     # Initialize additional validators (up to 20)
     additional_validators = [
         ("jaspr1validator5", 3_500_000_000_000, "Alpha Node"),
