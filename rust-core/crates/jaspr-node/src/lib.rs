@@ -10,9 +10,11 @@ pub mod http_server;
 pub mod mempool;
 pub mod faucet;
 pub mod wallet;
+pub mod api_types;
 
 pub use node::JasprNode;
 pub use config::NodeConfig;
 pub use mempool::Mempool;
 pub use faucet::{FaucetService, FaucetConfig};
 pub use wallet::{HdWallet, WalletConfig, TransactionBuilder};
+pub use api_types::*;
