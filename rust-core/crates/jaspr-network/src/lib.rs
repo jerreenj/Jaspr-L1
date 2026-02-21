@@ -5,6 +5,7 @@
 //! - Block and transaction propagation
 //! - Gossip protocol
 //! - Network message types
+//! - Transaction pool
 
 pub mod peer;
 pub mod message;
@@ -12,6 +13,7 @@ pub mod gossip;
 pub mod service;
 pub mod libp2p_network;
 pub mod sync;
+pub mod txpool;
 
 pub use peer::{PeerId, PeerInfo, PeerManager};
 pub use message::{NetworkMessage, MessageType};
@@ -19,3 +21,4 @@ pub use gossip::GossipProtocol;
 pub use service::{NetworkService, NetworkConfig, NetworkEvent};
 pub use libp2p_network::{Libp2pNetwork, Libp2pConfig, Libp2pEvent};
 pub use sync::{BlockSyncService, SyncConfig, SyncState};
+pub use txpool::{TransactionPool, TxPoolConfig, TxPoolStats, TxPoolError};
