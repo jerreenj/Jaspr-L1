@@ -1,96 +1,86 @@
-# JasprChain - Product Requirements Document
+# JasprChain - Layer 1 Blockchain
 
-## Status: TESTNET with Mobile Responsive UI + Genesis Config
+## Project Overview
+JasprChain is a high-performance, mobile-first Layer 1 blockchain with Move VM smart contract support and PoS consensus.
 
-**Chain ID:** `jasprchain-testnet-1`
+## Current State: Rust Core Implementation COMPLETE (~60%)
 
-## What's Running
+### What's Been Built
 
-### Real-Time Activity
-- **Blocks:** Every 2 seconds, all FINALIZED
-- **Validators:** 20 active validators
-- **Staking:** Random stakes/unstakes (1-10K JASPR)
-- **P2P:** 5 simulated peers
-- **Move VM:** Token transfers, account creations
+#### 1. Python/JS Testnet Simulation (COMPLETE - DO NOT MODIFY)
+- FastAPI backend + React frontend demo
+- Real-time block production, 20 validators
+- JASPR token tokenomics, staking/unstaking
+- LMDB persistence, mobile-responsive UI
+- Location: `/app/backend/`, `/app/frontend/`
 
-### Random Sequence Logic
-1. **Staking Simulation:**
-   - Random amount: 1-10,000 JASPR
-   - Random interval: 5-60 seconds
-   - Actions: 70% stake, 30% unstake
-   - Source: Community pool (up to 500M JASPR)
+#### 2. Rust Core Implementation (60% COMPLETE)
+Location: `/app/rust-core/`
 
-2. **Validators (20 total):**
-   - Initial 4: Jaspr Labs (10K), Foundation (8K), Community (6K), Ecosystem (4K)
-   - Additional 16: Alpha to Pi Node (3.5K decreasing to 950K)
+**Crates Built:**
+| Crate | Status | Description |
+|-------|--------|-------------|
+| `jaspr-types` | ✅ Complete | Core types: Block, Transaction, Address, Hash, Account, Receipt |
+| `jaspr-crypto` | ✅ Complete | Ed25519 signatures, SHA256/SHA3/Blake3 hashing |
+| `jaspr-state` | ✅ Complete | RocksDB storage, AccountStore, BlockStore, StateTree |
+| `jaspr-consensus` | ✅ Complete | PoS ValidatorSet, BlockProducer, Attestations, ConsensusEngine |
+| `jaspr-executor` | ✅ Complete | Transaction execution, Gas metering, VM adapter trait |
+| `jaspr-move-vm` | ✅ Complete | Move VM adapter, module cache, stdlib definitions |
+| `jaspr-network` | ✅ Complete | P2P peer management, gossip protocol, network service |
+| `jaspr-node` | ✅ Complete | Full node: config, mempool, RPC types, node orchestration |
 
-## Mobile Responsive Design ✅
-- **Hamburger menu** on mobile (< 768px)
-- **2x2 grid** for stats (vs 4-column on desktop)
-- **Card layout** for validators on mobile
-- **Touch-friendly** tap targets (44px minimum)
-- **Responsive text** sizing
-
-## Genesis Configuration ✅
-**Endpoint:** `GET /api/genesis`
-
-```json
-{
-  "chain_id": "jasprchain-testnet-1",
-  "chain_name": "JasprChain Testnet",
-  "genesis_time": "2025-01-01T00:00:00.000000000Z",
-  "consensus_params": {...},
-  "app_state": {
-    "bank": {"supply": "1000000000000000000 ujaspr"},
-    "staking": {"max_validators": 100, "bond_denom": "ujaspr"},
-    "slashing": {"slash_fraction_double_sign": "0.05"},
-    "move": {"modules": ["JASPR", "Coin", "Account"]},
-    "sentinel": {"guard_mode": "ENFORCED"}
-  },
-  "validators": [4 genesis validators]
-}
+**Binary: `jasprchain`**
+```bash
+jasprchain run      # Start node
+jasprchain keygen   # Generate keypair
+jasprchain init     # Initialize chain
+jasprchain version  # Show version
 ```
 
-## Test Results
-- **Backend:** 22/22 passed (100%)
-- **Frontend:** All passed (100%)
-- **Report:** `/app/test_reports/iteration_7.json`
+### Build & Test
+```bash
+cd /app/rust-core
+cargo build   # Compiles successfully
+cargo test    # All 17 tests pass
+./target/debug/jasprchain --help
+```
 
-## API Endpoints
+## Architecture
+```
+/app/rust-core/
+├── Cargo.toml              # Workspace config
+└── crates/
+    ├── jaspr-types/        # Core data structures
+    ├── jaspr-crypto/       # Cryptographic primitives
+    ├── jaspr-state/        # RocksDB storage layer
+    ├── jaspr-consensus/    # PoS consensus engine
+    ├── jaspr-executor/     # Transaction execution
+    ├── jaspr-move-vm/      # Move VM integration
+    ├── jaspr-network/      # P2P networking
+    └── jaspr-node/         # Full node binary
+```
 
-### Genesis
-- `GET /api/genesis` - Full genesis config
+## Key Features Implemented
+- **Cryptography**: Ed25519 signing, multi-hash support (SHA256, SHA3, Blake3)
+- **Storage**: RocksDB with column families (blocks, txs, accounts, receipts, state)
+- **Consensus**: PoS with validator set, weighted proposer selection, attestations, finality
+- **Execution**: Full tx execution pipeline with gas metering, VM adapter pattern
+- **Move VM**: Module cache, stdlib definitions (Coin, Staking, JASPR, Account, Event)
+- **Networking**: Peer management, gossip protocol, message types, network service
+- **Node**: Full orchestration with mempool, config, genesis initialization
 
-### Core
-- `GET /api/health` - testnet status
-- `GET /api/network/stats` - 20 validators, TPS
-- `GET /api/blocks` - Block list
+## Upcoming Tasks
+1. **Faucet Implementation** - Web endpoint to distribute testnet JASPR
+2. **Real P2P with libp2p** - Replace simulated networking
+3. **Full Move VM Integration** - Connect move-vm-runtime crate
+4. **RPC Server** - HTTP/WebSocket JSON-RPC endpoint
+5. **Block Explorer API** - Query blocks, txs, accounts
+6. **SDK/CLI Tools** - Transaction building, wallet management
 
-### Staking
-- `GET /api/staking/validators` - 20 validators with APY
-- `POST /api/staking/stake` - Stake tokens
-- `POST /api/staking/unstake` - 14-day unbonding
-
-### P2P
-- `GET /api/p2p/info` - is_running=true, 5 peers
-- `GET /api/p2p/peers` - Peer list
-
-### Move VM
-- `GET /api/move/modules` - Stdlib modules
-- `POST /api/move/execute` - Execute function
-
-### WebSocket
-- `ws://*/ws` - Real-time events (new_block, stats_update, staking_update, move_event)
-
-## MOCKED Components
-- P2P peers SIMULATED
-- Move VM bytecode SIMULATED
-- Staking activity AUTOMATED
-- Slashing AUTOMATED
-- Consensus SIMULATED
-- BLS signatures SIMULATED
-
----
-*Last Updated: December 2025*
-*Test Coverage: 100% (22/22 backend, all frontend)*
-*Mobile: Responsive 390x844 to 1920x1080*
+## Technical Details
+- **Language**: Rust 2021 Edition
+- **Storage**: RocksDB
+- **Consensus**: Proof-of-Stake (67% finality threshold)
+- **Block Time**: 2 seconds
+- **Token**: JASPR (1B fixed supply, 9 decimals)
+- **Min Validator Stake**: 32,000 JASPR
