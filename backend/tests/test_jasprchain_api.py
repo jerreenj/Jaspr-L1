@@ -244,7 +244,7 @@ class TestStaking:
         assert info_data["stakes"]["jaspr1validator1"] == 1000_000_000_000
     
     def test_unstake_tokens(self, test_wallet):
-        """Test unstaking tokens from a validator"""
+        """Test unstaking tokens from a validator - now with 14-day unbonding"""
         wallet_address = test_wallet["address"]
         
         # First stake some tokens (500 JASPR)
@@ -269,12 +269,17 @@ class TestStaking:
         assert unstake_response.status_code == 200
         data = unstake_response.json()
         assert data["success"] == True
-        assert "Unstaked" in data["message"]
+        assert "Unstaking" in data["message"]  # Changed from "Unstaked" to "Unstaking"
+        assert "14 days" in data["message"]  # Verify unbonding period mentioned
+        assert data["unbonding_period_days"] == 14
         
         # Verify remaining stake (300 JASPR)
         staking_info = requests.get(f"{BASE_URL}/api/staking/{wallet_address}")
         info_data = staking_info.json()
         assert info_data["stakes"]["jaspr1validator2"] == 300_000_000_000  # 500 - 200 = 300
+        
+        # Verify unbonding entry was created
+        assert info_data["unbonding"]["total_unbonding"] >= 200_000_000_000
     
     def test_stake_insufficient_balance(self, test_wallet):
         """Test staking with insufficient balance"""
@@ -552,10 +557,10 @@ class TestTokenSymbol:
 
 
 class TestFullStakingFlow:
-    """End-to-end staking flow tests"""
+    """End-to-end staking flow tests with 14-day unbonding period"""
     
     def test_full_staking_flow(self):
-        """Test complete staking flow: create wallet -> stake -> unstake"""
+        """Test complete staking flow: create wallet -> stake -> unstake (with unbonding)"""
         # 1. Create wallet
         wallet_response = requests.post(f"{BASE_URL}/api/wallets/create")
         assert wallet_response.status_code == 200
@@ -586,7 +591,7 @@ class TestFullStakingFlow:
         balance_after_stake = requests.get(f"{BASE_URL}/api/wallets/{wallet_address}")
         assert balance_after_stake.json()["balance"] == 9000_000_000_000  # 10000 - 1000
         
-        # 6. Unstake 500 JASPR
+        # 6. Unstake 500 JASPR (now goes to unbonding, not immediately returned)
         unstake_response = requests.post(
             f"{BASE_URL}/api/staking/unstake",
             json={
@@ -597,14 +602,23 @@ class TestFullStakingFlow:
         )
         assert unstake_response.status_code == 200
         assert unstake_response.json()["success"] == True
+        assert unstake_response.json()["unbonding_period_days"] == 14
         
         # 7. Verify stake reduced
         staking_info_after = requests.get(f"{BASE_URL}/api/staking/{wallet_address}")
         assert staking_info_after.json()["stakes"]["jaspr1validator1"] == 500_000_000_000
         
-        # 8. Verify balance increased
+        # 8. Verify balance NOT increased (tokens in unbonding, not returned immediately)
         balance_after_unstake = requests.get(f"{BASE_URL}/api/wallets/{wallet_address}")
-        assert balance_after_unstake.json()["balance"] == 9500_000_000_000  # 9000 + 500
+        assert balance_after_unstake.json()["balance"] == 9000_000_000_000  # Still 9000, not 9500
+        
+        # 9. Verify unbonding entry was created
+        assert staking_info_after.json()["unbonding"]["total_unbonding"] == 500_000_000_000
+        
+        # 10. Verify claim fails (14-day period not complete)
+        claim_response = requests.post(f"{BASE_URL}/api/staking/{wallet_address}/claim")
+        assert claim_response.status_code == 400
+        assert "No tokens available to claim" in claim_response.json()["detail"]
 
 
 if __name__ == "__main__":
