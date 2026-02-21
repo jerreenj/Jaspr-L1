@@ -178,6 +178,9 @@ class JasprChain:
         self.persistence.save_block(0, genesis.hash, genesis.to_dict())
         self.persistence.set_latest_height(0)
         
+        # Save genesis time for consistent TPS calculation
+        self.persistence.save_metadata('genesis_time', self._start_time)
+        
         # Initialize treasury accounts (Testnet - from Litepaper tokenomics)
         treasury_accounts = {
             "jaspr1treasury_community": self.COMMUNITY_INCENTIVES,      # 52% - Community
@@ -607,19 +610,26 @@ class JasprChain:
     def get_network_stats(self) -> dict:
         """Get network statistics"""
         now = int(datetime.now(timezone.utc).timestamp() * 1000)
-        uptime = now - self._start_time
+        
+        # Use persistent genesis time for consistent uptime calculation
+        genesis_time = self.persistence.get_metadata('genesis_time', self._start_time)
+        uptime = now - genesis_time
         
         avg_finality = 0
         finalized_blocks = [b for b in self.blocks[1:] if b.finalized and b.finality_time_ms]
         if finalized_blocks:
             avg_finality = sum(b.finality_time_ms for b in finalized_blocks) / len(finalized_blocks)
         
+        # Calculate TPS based on persisted transaction count and genesis time
+        # This ensures TPS is stable across refreshes
+        tps = self._total_transactions / (uptime / 1000) if uptime > 1000 else 0
+        
         return {
             'chain_id': self.CHAIN_ID,
             'height': self.height,
             'latest_block_hash': self.latest_block.hash,
             'total_transactions': self._total_transactions,
-            'tps': self._total_transactions / (uptime / 1000) if uptime > 0 else 0,
+            'tps': round(tps, 2),
             'target_tps': self.TARGET_TPS,
             'validators': {
                 'total': len(self.validator_set.validators),
