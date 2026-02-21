@@ -358,7 +358,37 @@ async def unstake_tokens(request: StakeRequest):
         "message": message,
         "delegator": request.delegator,
         "validator": request.validator,
-        "amount": request.amount
+        "amount": request.amount,
+        "unbonding_period_days": chain.UNBONDING_PERIOD_DAYS
+    }
+
+@api_router.get("/staking/{address}/unbonding")
+async def get_unbonding_entries(address: str):
+    """Get unbonding entries for an address"""
+    entries = chain.get_unbonding_entries(address)
+    total_unbonding = sum(e['amount'] for e in entries)
+    claimable = sum(e['amount'] for e in entries if e['is_claimable'])
+    
+    return {
+        "address": address,
+        "unbonding_entries": entries,
+        "total_unbonding": total_unbonding,
+        "claimable_amount": claimable,
+        "unbonding_period_days": chain.UNBONDING_PERIOD_DAYS
+    }
+
+@api_router.post("/staking/{address}/claim")
+async def claim_unbonded_tokens(address: str):
+    """Claim tokens that have completed unbonding"""
+    success, message = chain.claim_unbonded(address)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+    
+    return {
+        "success": True,
+        "message": message,
+        "new_balance": chain.get_balance(address)
     }
 
 @api_router.get("/staking/{address}")
@@ -366,6 +396,7 @@ async def get_staking_info(address: str):
     """Get staking info for an address"""
     stakes = chain.get_all_stakes(address)
     balance = chain.get_balance(address)
+    unbonding_entries = chain.get_unbonding_entries(address)
     
     # Calculate estimated rewards
     validators_with_rewards = []
@@ -387,7 +418,13 @@ async def get_staking_info(address: str):
         "balance": balance,
         "stakes": stakes,
         "total_staked": sum(stakes.values()),
-        "validators": validators_with_rewards
+        "validators": validators_with_rewards,
+        "unbonding": {
+            "entries": unbonding_entries,
+            "total_unbonding": sum(e['amount'] for e in unbonding_entries),
+            "claimable": sum(e['amount'] for e in unbonding_entries if e['is_claimable'])
+        },
+        "unbonding_period_days": chain.UNBONDING_PERIOD_DAYS
     }
 
 # ------------ Mempool ------------
