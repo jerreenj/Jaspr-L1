@@ -63,3 +63,7 @@ tests/
 design_guidelines.json
 test_result.md
 yarn.lock
+-e 
+# Environment files
+*.env
+*.env.*
