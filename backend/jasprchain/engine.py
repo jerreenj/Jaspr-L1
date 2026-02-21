@@ -221,7 +221,7 @@ class JasprChain:
         
         # Testnet: Allocate tokens from community incentives pool
         # Each new wallet gets 10,000 JASPR for testing
-        testnet_allocation = 10_000_000_000_000  # 10,000 JASPR
+        testnet_allocation = 10_000  # 10,000 JASPR per new wallet
         community_balance = self.state.get_account_balance("jaspr1treasury_community")
         
         if community_balance >= testnet_allocation:
