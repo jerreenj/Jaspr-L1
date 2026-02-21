@@ -34,17 +34,21 @@ function ValidatorCard({ validator, onSelect, isSelected, totalStake }) {
         {isSelected && <Check className="w-5 h-5 text-cyan-500" />}
       </div>
       
-      <div className="grid grid-cols-3 gap-2 text-xs">
+      <div className="grid grid-cols-4 gap-2 text-xs">
         <div>
           <p className="text-zinc-500">Stake</p>
-          <p className="font-mono text-white">{(validator.stake / 1_000_000_000_000).toFixed(1)}K JJ</p>
+          <p className="font-mono text-white">{(validator.stake / 1_000_000_000_000).toFixed(1)}K</p>
         </div>
         <div>
           <p className="text-zinc-500">Share</p>
           <p className="font-mono text-cyan-500">{stakePercentage}%</p>
         </div>
         <div>
-          <p className="text-zinc-500">Commission</p>
+          <p className="text-zinc-500">APY</p>
+          <p className="font-mono text-green-500">{validator.apy || "~9"}%</p>
+        </div>
+        <div>
+          <p className="text-zinc-500">Fee</p>
           <p className="font-mono text-white">{(validator.commission_rate / 100).toFixed(1)}%</p>
         </div>
       </div>
