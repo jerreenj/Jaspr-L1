@@ -279,3 +279,71 @@ body {
 .risk-medium { color: var(--warning); }
 .risk-high { color: #FF8C00; }
 .risk-critical { color: var(--danger); }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  /* Hide stats that overflow on mobile */
+  .header-stats-overflow {
+    max-width: calc(100vw - 120px);
+  }
+  
+  /* Smaller text on mobile */
+  .mobile-text-sm {
+    font-size: 0.75rem;
+  }
+  
+  /* Stack grids vertically on mobile */
+  .mobile-stack {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Smaller padding on mobile */
+  .mobile-p-2 {
+    padding: 0.5rem !important;
+  }
+  
+  /* Hero text sizing */
+  .hero-title {
+    font-size: 1.5rem !important;
+  }
+  
+  /* Card padding reduction */
+  .card {
+    padding: 0.75rem !important;
+  }
+  
+  /* Table horizontal scroll */
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Stat badges - smaller */
+  .stat-badge {
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Extra small screens */
+  .xs-hidden {
+    display: none !important;
+  }
+  
+  .xs-text-xs {
+    font-size: 0.65rem !important;
+  }
+  
+  .xs-p-1 {
+    padding: 0.25rem !important;
+  }
+}
+
+/* Touch-friendly tap targets */
+@media (pointer: coarse) {
+  button, a, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
