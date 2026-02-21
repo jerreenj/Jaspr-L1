@@ -3,92 +3,93 @@
 ## Original Problem Statement
 Build JasprChain - a high-performance Layer 1 blockchain TESTNET:
 - Core L1 foundation that applications can be built on top of
-- Rust core chain architecture (Python simulator + Rust production code)
-- Move VM integration points (for future)
-- HyperLiquid-style validator model (4 initial validators)
+- **LMDB Persistence** - Blocks survive restart
+- **14-day Unbonding Period** - Real staking economics
+- $JASPR tokenomics from litepaper
+- HyperLiquid-style validators (4 initial)
 - AI Sentinel with ML risk scoring
 - MPC + Account Abstraction wallets
 - <2s deterministic finality
-- **$JASPR native token** (from litepaper tokenomics)
-- Full validator delegation staking with dynamic APY
 
-**This is TESTNET/DEVNET for investor demonstration - NOT mainnet**
+**This is TESTNET/DEVNET - NOT mainnet**
 
-## $JASPR Tokenomics (from Litepaper)
+## Key Features Implemented
 
-### Token Details
-- **Symbol:** JASPR
-- **Name:** Jaspr
-- **Total Supply:** 1,000,000,000 (1 billion) - FIXED
-- **Decimals:** 9
-- **Inflation:** None (fixed supply)
+### 1. LMDB Persistence ✅
+- **Database:** LMDB at `/app/data/jasprchain`
+- **Persisted Data:** Blocks, state (balances, stakes), unbonding entries, wallets, metadata
+- **Blocks survive restart** - Chain continues from last height
+- **API:** `GET /api/network/persistence` for DB stats
 
-### Distribution
-| Allocation | Percentage | Amount |
-|------------|------------|--------|
-| Community Incentives | 52% | 520,000,000 |
-| Treasury Reserve | 15% | 150,000,000 |
-| Liquidity & Market Making | 10% | 100,000,000 |
-| Core Team & Advisors | 10% | 100,000,000 |
-| Investors (Pre-Seed + Seed) | 8% | 80,000,000 |
-| Ecosystem & Partnerships | 5% | 50,000,000 |
+### 2. 14-Day Unbonding Period ✅
+- Unstaking tokens triggers 14-day lock period
+- Tokens cannot be used during unbonding
+- After 14 days, tokens become claimable
+- **APIs:**
+  - `GET /api/staking/{address}/unbonding` - View unbonding entries
+  - `POST /api/staking/{address}/claim` - Claim completed unbonding
+- **Entry Fields:** delegator, validator, amount, unlock_time, remaining_days, is_claimable
 
-### Treasury Addresses (Testnet)
-- `jaspr1treasury_community` - Community pool (funds new wallets)
-- `jaspr1treasury_reserve` - Treasury reserve
-- `jaspr1treasury_liquidity` - Liquidity/market making
-- `jaspr1treasury_team` - Team/advisors
-- `jaspr1treasury_investors` - Investor allocation
-- `jaspr1treasury_ecosystem` - Ecosystem/partnerships
+### 3. $JASPR Tokenomics (from Litepaper) ✅
+- **Total Supply:** 1,000,000,000 (Fixed - no inflation)
+- **Distribution:**
+  - Community Incentives: 52% (520,000,000)
+  - Treasury Reserve: 15% (150,000,000)
+  - Liquidity & Market Making: 10% (100,000,000)
+  - Core Team & Advisors: 10% (100,000,000)
+  - Investors: 8% (80,000,000)
+  - Ecosystem & Partnerships: 5% (50,000,000)
+- **New Wallets:** 10,000 JASPR from community pool
 
-### Testnet Wallet Allocation
-- New wallets receive **10,000 JASPR** from community pool
-- Circulating supply increases as wallets are created
+### 4. Real-Time Block Production ✅
+- Blocks produced every 2 seconds
+- Blocks include transactions from mempool
+- All blocks marked FINALIZED (1ms finality)
+- Persisted to LMDB
+
+### 5. Dynamic APY Calculation ✅
+- Base rate: 8% annual
+- Performance bonus: up to 4%
+- Stake concentration penalty
+- Commission deduction (5% default)
+- **Average APY:** ~9.5%
+
+## Test Results
+- **Backend:** 53/53 tests passed (100%)
+- **Frontend:** All tests passed (100%)
+- **Test report:** `/app/test_reports/iteration_4.json`
 
 ## Architecture
 
-### Python Simulator (`/app/backend/jasprchain/`)
-Working testnet simulation that mirrors future Rust implementation
-
-### React Dashboard (`/app/frontend/`)
-- Dashboard - Network overview with TESTNET badge
-- Block Explorer - Block/TX details  
-- Validators - Stake distribution
-- Wallet - MPC wallet creation (10,000 JASPR initial balance)
-- Staking - Validator delegation with dynamic APY
-- AI Sentinel - Guard modes (PASSIVE/WARNING/ENFORCED)
-- Mempool - Priority lanes
-
-### Production Rust Codebase (`/app/rust-core/`)
-Boilerplate for future mainnet development
-
-## What's Been Implemented (Dec 2025) ✅
-
-### Core L1 Features
-- ✅ BLS12-381 consensus signatures
-- ✅ Ed25519 wallet keys
-- ✅ VRF-based proposer selection
-- ✅ Committee finality with 2/3 threshold
-- ✅ 4 validators (HyperLiquid model)
-- ✅ Parallel execution with conflict detection
-- ✅ Sparse Merkle Tree state
-- ✅ MPC wallet (2-of-3 threshold)
-- ✅ Account Abstraction (spending limits, blocked addresses)
-- ✅ AI Sentinel with ML scoring
-- ✅ Mempool with 6 priority lanes
-- ✅ Full Staking/Unstaking with Dynamic APY
-- ✅ $JASPR tokenomics from litepaper
-- ✅ Treasury accounts with proper distribution
-- ✅ Testnet branding throughout
-
-### Staking APY Calculation
-- Base rate: 8% annual
-- Performance bonus: up to 4% (uptime + blocks proposed)
-- Stake concentration penalty: for >40% stake share
-- Commission deduction: default 5%
-- **Average APY: ~9.5%**
+```
+/app/
+├── backend/
+│   ├── jasprchain/
+│   │   ├── storage/        # NEW: LMDB persistence
+│   │   │   └── persistence.py
+│   │   ├── consensus/
+│   │   ├── execution/
+│   │   ├── state/
+│   │   ├── wallet/
+│   │   ├── sentinel/
+│   │   ├── network/
+│   │   └── engine.py       # Core orchestrator
+│   └── server.py           # FastAPI endpoints
+├── frontend/
+│   └── src/pages/          # React dashboard
+├── data/
+│   └── jasprchain/         # LMDB database files
+└── rust-core/              # Rust boilerplate for mainnet
+```
 
 ## API Endpoints
+
+### Persistence
+- `GET /api/network/persistence` - DB stats
+
+### Unbonding
+- `GET /api/staking/{address}/unbonding` - Unbonding entries
+- `POST /api/staking/{address}/claim` - Claim completed
 
 ### Tokenomics
 - `GET /api/tokenomics` - Full tokenomics info
@@ -97,65 +98,46 @@ Boilerplate for future mainnet development
 - `GET /api/staking/stats/overview` - Network staking stats
 - `GET /api/staking/validators` - Validators with APY
 - `POST /api/staking/stake` - Stake tokens
-- `POST /api/staking/unstake` - Unstake tokens
+- `POST /api/staking/unstake` - Unstake (starts unbonding)
 - `GET /api/staking/{address}` - User staking info
 
 ### Core
-- `GET /api/health` - Chain health (includes network=testnet)
-- `GET /api/network/stats` - Network statistics
-- `GET /api/blocks` - Block list
+- `GET /api/health` - Chain health
+- `GET /api/blocks` - Block list (persisted=True)
 - `GET /api/validators` - Validator list
 - `POST /api/wallets/create` - Create MPC wallet
 
-## Test Results
-- **Backend:** 36/36 tests passed (100%)
-- **Frontend:** All tests passed (100%)
-- **Test report:** `/app/test_reports/iteration_3.json`
-
-## Roadmap
-
-### Phase 1: Testnet Foundation (CURRENT) ✅
-- Core L1 simulation working
-- Tokenomics implemented
-- Staking functional
-- Dashboard for investor demo
-
-### Phase 2: DEX Integration (NEXT)
-- Connect DEX application layer on top of L1
-- Transaction flow through JasprChain testnet
-- Economics validation
-
-### Phase 3: Team Handoff
-- Complete Rust codebase
-- Documentation for engineering team
-- Mainnet development begins
+## What's NOT Implemented (Future)
+- ❌ DEX (application layer - build on top)
+- ❌ libp2p networking (use simulation)
+- ❌ Move VM (use simulation)
+- ❌ Slashing (placeholder)
 
 ## Prioritized Backlog
 
-### P0 (Critical for Production)
-- [ ] Complete libp2p networking
-- [ ] RocksDB persistence
+### P0 (For Production Mainnet)
+- [ ] libp2p networking
 - [ ] Move VM integration
 - [ ] Genesis config file
+- [ ] Slashing mechanism
 
 ### P1 (High)
 - [ ] RPC server (JSON-RPC 2.0)
 - [ ] Light client support
-- [ ] Actual unbonding period (14 days)
-- [ ] Slashing implementation
+- [ ] Archive node support
 
 ### P2 (Medium)
 - [ ] Move module deployment
 - [ ] Gas estimation
-- [ ] Archive node support
 - [ ] Validator rewards distribution
 
-## MOCKED Components (Simulation)
-- Blockchain consensus is simulated (not real distributed consensus)
-- BLS signatures are simulated (not real cryptographic signatures)
-- MPC wallet uses simplified crypto (not real multi-party computation)
-- AI Sentinel ML is mocked (not real machine learning model)
+## MOCKED Components
+- Blockchain consensus (simulated, not distributed)
+- BLS signatures (simulated)
+- MPC wallet (simplified crypto)
+- AI Sentinel ML (mocked)
+- **Unbonding period is REAL 14 days**
 
 ---
 *Last Updated: December 2025*
-*Status: TESTNET - Ready for investor demonstration*
+*Status: TESTNET with Persistence - Ready for investor demonstration*
