@@ -169,7 +169,7 @@ export default function WalletPage() {
                   <div>
                     <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest">Balance</p>
                     <p className="font-unbounded text-4xl font-bold mt-2">
-                      {walletDetails?.balance_formatted || "0.0000 JJ"}
+                      {walletDetails?.balance_formatted || "0.0000 $JSP"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export default function WalletPage() {
                       />
                     </div>
                     <div>
-                      <label className="font-mono text-xs text-zinc-500 block mb-2">AMOUNT (JJ)</label>
+                      <label className="font-mono text-xs text-zinc-500 block mb-2">AMOUNT ($JSP)</label>
                       <input
                         type="number"
                         value={amount}
