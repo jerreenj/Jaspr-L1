@@ -123,6 +123,15 @@ async def get_tokenomics():
     """Get $JASPR tokenomics from litepaper"""
     return chain.get_tokenomics()
 
+# ------------ Genesis ------------
+
+@api_router.get("/genesis")
+async def get_genesis():
+    """Get genesis configuration file"""
+    import json
+    with open("/app/backend/genesis.json", "r") as f:
+        return json.load(f)
+
 # ------------ Network Stats ------------
 
 @api_router.get("/network/stats")
