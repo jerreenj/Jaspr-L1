@@ -73,8 +73,9 @@ impl BlockProducer {
         // Get transactions to include
         let transactions: Vec<SignedTransaction> = {
             let mut pending = self.pending_txs.write();
-            let to_include: Vec<_> = pending.drain(..pending.len().min(self.config.max_txs_per_block)).collect();
-            to_include
+            let max_txs = self.config.max_txs_per_block;
+            let count = pending.len().min(max_txs);
+            pending.drain(..count).collect()
         };
         
         // Create block body
