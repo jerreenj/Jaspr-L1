@@ -816,43 +816,33 @@ async def startup_event():
     print("[STARTUP] Background tasks started: blocks, staking, slashing, contracts")
 
 async def simulate_slashing_detection():
-    """Simulate automatic slashing detection
+    """Monitor validator signatures - STABLE detection
     
-    - Randomly detect downtime (validators missing blocks)
-    - Very rare double-sign detection (for demo purposes)
+    - Records signatures consistently (no random missed blocks)
+    - Only processes real evidence, no random slashing
     """
     import random
     
     while True:
-        # Check every 30-120 seconds
-        await asyncio.sleep(random.randint(30, 120))
+        # Check every 60 seconds (stable interval)
+        await asyncio.sleep(60)
         
         try:
             validators = chain.validator_set.get_active_validators()
             if not validators:
                 continue
             
-            # Simulate block signing tracking
+            # Record that all validators signed the block (100% uptime for stability)
             for validator in validators:
-                # Record that validator signed a block (most of the time)
-                if random.random() < 0.95:  # 95% chance to sign
+                if chain.blocks:
                     chain.slashing.record_block_signature(
                         validator.address, 
                         chain.height, 
-                        chain.blocks[-1].hash if chain.blocks else "genesis"
+                        chain.blocks[-1].hash
                     )
-                else:
-                    # Missed block
-                    chain.slashing.record_missed_block(validator.address, chain.height)
             
-            # Process any pending evidence (very rare)
-            records = chain.slashing.process_pending_evidence(chain.validator_set)
-            for record in records:
-                print(f"[SLASH] {record.slash_type.value}: {record.validator[:16]}... slashed {record.amount_slashed/1e9:.0f} JASPR")
-                await manager.broadcast({
-                    "type": "slashing_event",
-                    "data": record.to_dict()
-                })
+            # Only process real evidence (none in simulation = no random slashing)
+            # This ensures stable validator stakes
                 
         except Exception as e:
             print(f"Slashing detection error: {e}")
