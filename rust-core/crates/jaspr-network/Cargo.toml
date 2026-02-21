@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 jaspr-types = { path = "../jaspr-types" }
 jaspr-crypto = { path = "../jaspr-crypto" }
+jaspr-state = { path = "../jaspr-state" }
 tokio = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
