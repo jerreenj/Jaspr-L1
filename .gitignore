@@ -1,8 +1,5 @@
 # Dependencies
 node_modules/
-.pnp
-.pnp.js
-.yarn/
 
 # Build outputs
 /build
@@ -12,8 +9,9 @@ dist/
 /coverage
 *.tsbuildinfo
 
-# Rust
+# Rust build artifacts
 rust-core/target/
+target/
 
 # Python
 __pycache__/
@@ -41,9 +39,18 @@ yarn-debug.log*
 *.log
 dump.rdb
 
-# Platform specific
+# Platform specific (DO NOT COMMIT)
 .emergent/
 .vercel/
+
+# Data files (runtime generated)
+data/
+*.mdb
+
+# Test files
+backend/tests/
+test_reports/
+tests/
 
 # Large files
 *.zip
@@ -51,12 +58,8 @@ dump.rdb
 *.tar
 *.pack
 *.deb
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
-data/
+
+# Misc auto-generated
+design_guidelines.json
+test_result.md
+yarn.lock
