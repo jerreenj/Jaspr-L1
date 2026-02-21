@@ -39,25 +39,25 @@ export default function Validators() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="space-y-6"
+      className="space-y-4 md:space-y-6"
     >
-      <h1 className="font-unbounded text-2xl font-bold">Validators</h1>
+      <h1 className="font-unbounded text-xl md:text-2xl font-bold">Validators</h1>
       
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="card rounded-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-sm bg-cyan-500/10">
-              <Users className="w-5 h-5 text-cyan-500" />
+      {/* Stats - mobile responsive grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+        <div className="card rounded-sm p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 rounded-sm bg-cyan-500/10">
+              <Users className="w-4 h-4 md:w-5 md:h-5 text-cyan-500" />
             </div>
             <div>
-              <p className="font-mono text-xs text-zinc-500">TOTAL VALIDATORS</p>
-              <p className="font-unbounded text-2xl font-bold">{validatorData?.total_validators || 0}</p>
+              <p className="font-mono text-[10px] md:text-xs text-zinc-500">VALIDATORS</p>
+              <p className="font-unbounded text-lg md:text-2xl font-bold">{validatorData?.total_validators || 0}</p>
             </div>
           </div>
         </div>
-        <div className="card rounded-sm p-4">
-          <div className="flex items-center gap-3">
+        <div className="card rounded-sm p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
             <div className="p-2 rounded-sm bg-green-500/10">
               <CheckCircle className="w-5 h-5 text-green-500" />
             </div>
