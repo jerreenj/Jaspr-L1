@@ -294,6 +294,3 @@ class AccountAbstraction:
         # Convert to token amount based on current price
         token_amount = int(gas_cost_wei / token_price) if token_price > 0 else gas_cost_wei
         return token_amount
-
-
-from typing import Tuple
