@@ -95,3 +95,7 @@ rust-core/target/debug/deps/jasprchain-40abf018dc70dfc6
 rust-core/target/debug/jasprchain
 rust-core/target/debug/deps/jasprchain-965749f595d5c113
 rust-core/target/debug/deps/jaspr_node-6491f7f6f031e7b2
+rust-core/target/debug/deps/jaspr_move_vm-8e5688345e59da0f
+rust-core/target/debug/deps/jaspr_state-f3bfca3504970a6b
+rust-core/target/debug/deps/jaspr_consensus-95daafce68910b00
+rust-core/target/debug/deps/jaspr_executor-fb34d6881aecf189
