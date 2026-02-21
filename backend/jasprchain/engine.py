@@ -343,8 +343,13 @@ class JasprChain:
         self.blocks.append(block)
         self._blocks_by_hash[block.hash] = block
         
+        # PERSIST BLOCK
+        self.persistence.save_block(block.height, block.hash, block.to_dict())
+        self.persistence.set_latest_height(block.height)
+        
         # Update stats
         self._total_transactions += len(pending_txs)
+        self.persistence.save_metadata('total_transactions', self._total_transactions)
         
         # Update validator stats
         proposer.stats.blocks_proposed += 1
