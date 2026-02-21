@@ -233,16 +233,16 @@ export default function Dashboard({ networkStats }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="space-y-8"
+      className="space-y-4 md:space-y-8"
     >
-      {/* Hero section */}
-      <div className="relative overflow-hidden rounded-sm bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-8">
+      {/* Hero section - mobile responsive */}
+      <div className="relative overflow-hidden rounded-sm bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 p-4 md:p-8">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1710957987034-cea509422852?w=1200')] bg-cover bg-center opacity-10" />
         <div className="relative z-10">
-          <h1 className="font-unbounded text-4xl font-bold mb-2">
+          <h1 className="font-unbounded text-2xl md:text-4xl font-bold mb-2">
             <span className="gradient-text">JasprChain</span> Dashboard
           </h1>
-          <p className="font-manrope text-zinc-400 max-w-xl">
+          <p className="font-manrope text-sm md:text-base text-zinc-400 max-w-xl">
             High-performance L1 blockchain testnet with AI-protected safety, parallel execution, and under 2s finality.
           </p>
           <span className="inline-block mt-3 px-3 py-1 bg-yellow-500/20 border border-yellow-500/30 text-yellow-500 text-xs font-mono rounded-sm">
@@ -251,8 +251,8 @@ export default function Dashboard({ networkStats }) {
         </div>
       </div>
       
-      {/* Stats grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats grid - mobile responsive */}
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
         <StatCard
           title="Block Height"
           value={networkStats?.height?.toLocaleString() || "0"}
