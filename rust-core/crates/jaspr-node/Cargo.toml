@@ -1,0 +1,27 @@
+[package]
+name = "jaspr-node"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "jasprchain"
+path = "src/main.rs"
+
+[dependencies]
+jaspr-types = { path = "../jaspr-types" }
+jaspr-crypto = { path = "../jaspr-crypto" }
+jaspr-state = { path = "../jaspr-state" }
+jaspr-consensus = { path = "../jaspr-consensus" }
+jaspr-executor = { path = "../jaspr-executor" }
+jaspr-move-vm = { path = "../jaspr-move-vm" }
+jaspr-network = { path = "../jaspr-network" }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4.4", features = ["derive"] }
+parking_lot = "0.12"
