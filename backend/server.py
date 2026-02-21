@@ -351,9 +351,11 @@ async def place_order(request: OrderRequest):
         "message": message
     }
 
-@api_router.get("/dex/trades/{market}")
+@api_router.get("/dex/trades/{market:path}")
 async def get_trades(market: str, limit: int = 50):
     """Get recent trades for a market"""
+    import urllib.parse
+    market = urllib.parse.unquote(market)
     trades = chain.get_recent_trades(market, limit)
     return {"trades": trades}
 
