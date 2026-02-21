@@ -6,7 +6,7 @@ use sha2::{Sha256, Digest};
 use std::fmt;
 
 /// 32-byte hash value
-#[derive(Clone, Copy, PartialEq, Eq, Hash, BorshSerialize, BorshDeserialize, Serialize, Deserialize, Default)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, BorshSerialize, BorshDeserialize, Serialize, Deserialize, Default)]
 pub struct HashValue([u8; 32]);
 
 impl HashValue {
