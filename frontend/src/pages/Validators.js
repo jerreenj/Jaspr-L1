@@ -58,42 +58,43 @@ export default function Validators() {
         </div>
         <div className="card rounded-sm p-3 md:p-4">
           <div className="flex items-center gap-2 md:gap-3">
-            <div className="p-2 rounded-sm bg-green-500/10">
-              <CheckCircle className="w-5 h-5 text-green-500" />
+            <div className="p-1.5 md:p-2 rounded-sm bg-green-500/10">
+              <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
             </div>
             <div>
-              <p className="font-mono text-xs text-zinc-500">ACTIVE</p>
-              <p className="font-unbounded text-2xl font-bold text-green-500">{validatorData?.active_validators || 0}</p>
+              <p className="font-mono text-[10px] md:text-xs text-zinc-500">ACTIVE</p>
+              <p className="font-unbounded text-lg md:text-2xl font-bold text-green-500">{validatorData?.active_validators || 0}</p>
             </div>
           </div>
         </div>
-        <div className="card rounded-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-sm bg-purple-500/10">
-              <TrendingUp className="w-5 h-5 text-purple-500" />
+        <div className="card rounded-sm p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 rounded-sm bg-purple-500/10">
+              <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-purple-500" />
             </div>
             <div>
-              <p className="font-mono text-xs text-zinc-500">TOTAL STAKE</p>
-              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K JASPR</p>
+              <p className="font-mono text-[10px] md:text-xs text-zinc-500">STAKED</p>
+              <p className="font-unbounded text-lg md:text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K</p>
             </div>
           </div>
         </div>
-        <div className="card rounded-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-sm bg-yellow-500/10">
-              <Shield className="w-5 h-5 text-yellow-500" />
+        <div className="card rounded-sm p-3 md:p-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 rounded-sm bg-yellow-500/10">
+              <Shield className="w-4 h-4 md:w-5 md:h-5 text-yellow-500" />
             </div>
             <div>
-              <p className="font-mono text-xs text-zinc-500">VOTING POWER</p>
-              <p className="font-unbounded text-2xl font-bold">{(validatorData?.total_voting_power / 1_000_000_000_000).toFixed(0)}K</p>
+              <p className="font-mono text-[10px] md:text-xs text-zinc-500">POWER</p>
+              <p className="font-unbounded text-lg md:text-2xl font-bold">{(validatorData?.total_voting_power / 1_000_000_000_000).toFixed(0)}K</p>
             </div>
           </div>
         </div>
       </div>
       
-      {/* Validator list */}
+      {/* Validator list - mobile cards, desktop table */}
       <div className="card rounded-sm" data-testid="validator-table">
-        <div className="table-header">
+        {/* Desktop header */}
+        <div className="table-header hidden md:block">
           <div className="grid grid-cols-12 gap-4 px-4 py-3">
             <div className="col-span-1">RANK</div>
             <div className="col-span-3">VALIDATOR</div>
@@ -103,13 +104,44 @@ export default function Validators() {
             <div className="col-span-2">STATUS</div>
           </div>
         </div>
+        
+        {/* Mobile header */}
+        <div className="md:hidden px-4 py-3 border-b border-zinc-800">
+          <p className="font-mono text-xs text-zinc-500">ALL VALIDATORS ({validators.length})</p>
+        </div>
+        
         <div className="divide-y divide-zinc-800">
           {validators.map((validator, i) => (
             <div
               key={validator.address}
-              className="table-row grid grid-cols-12 gap-4 px-4 py-4 items-center"
+              className="p-3 md:p-4"
               data-testid={`validator-row-${i}`}
             >
+              {/* Mobile layout */}
+              <div className="md:hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-unbounded font-bold text-sm text-zinc-400">#{i + 1}</span>
+                    <span className="font-manrope font-medium text-white text-sm">{validator.name || "Validator"}</span>
+                  </div>
+                  <span className={`badge-${validator.active ? 'success' : 'danger'} text-xs`}>
+                    {validator.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="font-mono text-zinc-500">Stake</p>
+                    <p className="font-mono text-white">{(validator.stake / 1_000_000_000_000).toFixed(1)}K</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-zinc-500">Share</p>
+                    <p className="font-mono text-cyan-500">{((validator.stake / totalStake) * 100).toFixed(1)}%</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Desktop layout */}
+              <div className="hidden md:grid grid-cols-12 gap-4 items-center">
               <div className="col-span-1">
                 <span className="font-unbounded font-bold text-lg text-zinc-400">#{i + 1}</span>
               </div>
