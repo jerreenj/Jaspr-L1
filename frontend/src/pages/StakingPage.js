@@ -209,6 +209,7 @@ export default function StakingPage() {
   const [totalStake, setTotalStake] = useState(0);
   const [walletAddress, setWalletAddress] = useState(null);
   const [stakingInfo, setStakingInfo] = useState(null);
+  const [networkStats, setNetworkStats] = useState(null);
   const [loading, setLoading] = useState(true);
   
   // Load wallet from localStorage
@@ -222,13 +223,17 @@ export default function StakingPage() {
     }
   }, []);
   
-  // Fetch validators
+  // Fetch validators with APY
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(`${API}/validators`);
-        setValidators(response.data.validators || []);
-        setTotalStake(response.data.total_stake || 0);
+        const [validatorsRes, statsRes] = await Promise.all([
+          axios.get(`${API}/staking/validators`),
+          axios.get(`${API}/staking/stats/overview`)
+        ]);
+        setValidators(validatorsRes.data.validators || []);
+        setTotalStake(validatorsRes.data.total_stake || 0);
+        setNetworkStats(statsRes.data);
       } catch (e) {
         console.error("Failed to fetch validators:", e);
       } finally {
@@ -305,7 +310,7 @@ export default function StakingPage() {
             </div>
             <div>
               <p className="font-mono text-xs text-zinc-500">TOTAL STAKED</p>
-              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K JJ</p>
+              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K $JSP</p>
             </div>
           </div>
         </div>
@@ -326,9 +331,9 @@ export default function StakingPage() {
               <TrendingUp className="w-5 h-5 text-green-500" />
             </div>
             <div>
-              <p className="font-mono text-xs text-zinc-500">YOUR STAKED</p>
-              <p className="font-unbounded text-2xl font-bold">
-                {stakingInfo ? (stakingInfo.total_staked / 1_000_000_000).toFixed(2) : "0"} JJ
+              <p className="font-mono text-xs text-zinc-500">AVG APY</p>
+              <p className="font-unbounded text-2xl font-bold text-green-500">
+                {networkStats?.average_apy || "~9"}%
               </p>
             </div>
           </div>
@@ -339,9 +344,9 @@ export default function StakingPage() {
               <Coins className="w-5 h-5 text-yellow-500" />
             </div>
             <div>
-              <p className="font-mono text-xs text-zinc-500">YOUR BALANCE</p>
+              <p className="font-mono text-xs text-zinc-500">YOUR STAKED</p>
               <p className="font-unbounded text-2xl font-bold">
-                {stakingInfo ? (stakingInfo.balance / 1_000_000_000).toFixed(2) : "0"} JJ
+                {stakingInfo ? (stakingInfo.total_staked / 1_000_000_000).toFixed(2) : "0"} $JSP
               </p>
             </div>
           </div>
@@ -389,7 +394,7 @@ export default function StakingPage() {
                         {validator?.name || validatorAddr.slice(0, 12)}...
                       </span>
                       <span className="font-mono text-sm text-white">
-                        {(amount / 1_000_000_000).toFixed(4)} JJ
+                        {(amount / 1_000_000_000).toFixed(4)} $JSP
                       </span>
                     </div>
                   );
