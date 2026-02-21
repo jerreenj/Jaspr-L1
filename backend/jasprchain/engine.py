@@ -1,7 +1,7 @@
 """JasprChain Engine - Main Blockchain Orchestrator
 Ties together all modules into a working blockchain
 
-CORE L1 ONLY - No application layer (DEX, etc.)
+CORE L1 TESTNET - Foundation for applications to be built on top
 """
 import asyncio
 from typing import Dict, List, Optional, Any
@@ -18,7 +18,7 @@ from .crypto import generate_wallet, sha256_hex
 
 
 class JasprChain:
-    """Main blockchain engine - Core L1 Only
+    """Main blockchain engine - Core L1 Testnet
     
     Coordinates core modules:
     - Consensus (validators, proposer selection, finality)
@@ -28,13 +28,35 @@ class JasprChain:
     - AI Sentinel (risk scoring)
     - Network (mempool)
     
-    NO APPLICATION LAYER (DEX, NFTs, etc.) - those are built on top
+    This is the TESTNET/DEVNET foundation - applications built on top
+    
+    $JASPR TOKENOMICS (from Litepaper):
+    - Total Supply: 1,000,000,000 (Fixed - no inflation)
+    - Community Incentives: 52% (520,000,000)
+    - Treasury Reserve: 15% (150,000,000)
+    - Liquidity & Market Making: 10% (100,000,000)
+    - Core Team & Advisors: 10% (100,000,000)
+    - Investors (Pre-Seed + Seed): 8% (80,000,000)
+    - Ecosystem & Partnerships: 5% (50,000,000)
     """
     
     # Chain configuration
-    CHAIN_ID = 1
+    CHAIN_ID = 1  # Testnet chain ID
     BLOCK_TIME_MS = 2000  # 2 second blocks
     TARGET_TPS = 10000
+    
+    # $JASPR Tokenomics (from Litepaper)
+    TOKEN_SYMBOL = "JASPR"
+    TOTAL_SUPPLY = 1_000_000_000_000_000_000  # 1 billion with 9 decimals
+    DECIMALS = 9
+    
+    # Distribution (in base units)
+    COMMUNITY_INCENTIVES = 520_000_000_000_000_000  # 52%
+    TREASURY_RESERVE = 150_000_000_000_000_000      # 15%
+    LIQUIDITY_MARKET_MAKING = 100_000_000_000_000_000  # 10%
+    TEAM_ADVISORS = 100_000_000_000_000_000         # 10%
+    INVESTORS = 80_000_000_000_000_000              # 8%
+    ECOSYSTEM_PARTNERSHIPS = 50_000_000_000_000_000 # 5%
     
     def __init__(self):
         # Core state
