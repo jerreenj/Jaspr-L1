@@ -80,10 +80,10 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
       const amountWei = Math.floor(parseFloat(amount) * 1_000_000_000);
       if (action === "stake") {
         await onStake(selectedValidator.address, amountWei);
-        setResult({ success: true, message: `Staked ${amount} $JSP to ${selectedValidator.name}` });
+        setResult({ success: true, message: `Staked ${amount} JASPR to ${selectedValidator.name}` });
       } else {
         await onUnstake(selectedValidator.address, amountWei);
-        setResult({ success: true, message: `Unstaked ${amount} $JSP from ${selectedValidator.name}` });
+        setResult({ success: true, message: `Unstaked ${amount} JASPR from ${selectedValidator.name}` });
       }
       setAmount("");
     } catch (e) {
@@ -148,13 +148,13 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
       {currentStake > 0 && (
         <div className="p-3 bg-zinc-900 rounded-sm mb-4">
           <p className="font-mono text-xs text-zinc-500">YOUR CURRENT STAKE</p>
-          <p className="font-mono text-lg text-white">{(currentStake / 1_000_000_000).toFixed(4)} $JSP</p>
+          <p className="font-mono text-lg text-white">{(currentStake / 1_000_000_000).toFixed(4)} JASPR</p>
         </div>
       )}
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="font-mono text-xs text-zinc-500 block mb-2">AMOUNT ($JSP)</label>
+          <label className="font-mono text-xs text-zinc-500 block mb-2">AMOUNT (JASPR)</label>
           <input
             type="number"
             value={amount}
@@ -179,7 +179,7 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
           {loading ? (
             <RefreshCw className="w-4 h-4 animate-spin mx-auto" />
           ) : (
-            `${action} $JSP`
+            `${action} JASPR`
           )}
         </button>
         
@@ -310,7 +310,7 @@ export default function StakingPage() {
             </div>
             <div>
               <p className="font-mono text-xs text-zinc-500">TOTAL STAKED</p>
-              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K $JSP</p>
+              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K JASPR</p>
             </div>
           </div>
         </div>
@@ -346,7 +346,7 @@ export default function StakingPage() {
             <div>
               <p className="font-mono text-xs text-zinc-500">YOUR STAKED</p>
               <p className="font-unbounded text-2xl font-bold">
-                {stakingInfo ? (stakingInfo.total_staked / 1_000_000_000).toFixed(2) : "0"} $JSP
+                {stakingInfo ? (stakingInfo.total_staked / 1_000_000_000).toFixed(2) : "0"} JASPR
               </p>
             </div>
           </div>
@@ -394,7 +394,7 @@ export default function StakingPage() {
                         {validator?.name || validatorAddr.slice(0, 12)}...
                       </span>
                       <span className="font-mono text-sm text-white">
-                        {(amount / 1_000_000_000).toFixed(4)} $JSP
+                        {(amount / 1_000_000_000).toFixed(4)} JASPR
                       </span>
                     </div>
                   );

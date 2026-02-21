@@ -247,7 +247,7 @@ function BlockDetail({ heightOrHash }) {
                   </div>
                   <div>
                     <span className="text-zinc-500">Amount: </span>
-                    <span className="text-white">{(tx.amount / 1_000_000_000).toFixed(4)} $JSP</span>
+                    <span className="text-white">{(tx.amount / 1_000_000_000).toFixed(4)} JASPR</span>
                   </div>
                 </div>
               </div>

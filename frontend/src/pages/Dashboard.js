@@ -113,7 +113,7 @@ function ValidatorList({ validators }) {
             </div>
             <div className="text-right">
               <p className="font-mono text-sm text-white">
-                {(validator.stake / 1_000_000_000_000).toFixed(0)}K $JSP
+                {(validator.stake / 1_000_000_000_000).toFixed(0)}K JASPR
               </p>
               <p className="font-mono text-xs text-zinc-500">
                 {((validator.voting_power / validators.reduce((a, v) => a + v.voting_power, 0)) * 100).toFixed(1)}%
@@ -241,7 +241,7 @@ export default function Dashboard({ networkStats }) {
         <StatCard
           title="Validators"
           value={networkStats?.validators?.active || "0"}
-          subtitle={`${((networkStats?.validators?.total_stake || 0) / 1_000_000_000_000).toFixed(0)}K $JSP staked`}
+          subtitle={`${((networkStats?.validators?.total_stake || 0) / 1_000_000_000_000).toFixed(0)}K JASPR staked`}
           icon={Users}
           color="green"
         />

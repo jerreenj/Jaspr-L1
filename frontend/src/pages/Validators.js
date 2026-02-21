@@ -74,7 +74,7 @@ export default function Validators() {
             </div>
             <div>
               <p className="font-mono text-xs text-zinc-500">TOTAL STAKE</p>
-              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K $JSP</p>
+              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K JASPR</p>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function Validators() {
                 </p>
               </div>
               <div className="col-span-2">
-                <p className="font-mono text-white">{(validator.stake / 1_000_000_000_000).toFixed(2)}K $JSP</p>
+                <p className="font-mono text-white">{(validator.stake / 1_000_000_000_000).toFixed(2)}K JASPR</p>
                 <p className="font-mono text-xs text-zinc-500">
                   {((validator.stake / totalStake) * 100).toFixed(1)}% of total
                 </p>
