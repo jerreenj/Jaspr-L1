@@ -591,25 +591,19 @@ async def get_move_module(module_id: str):
     return module.to_dict()
 
 @api_router.post("/move/deploy")
-async def deploy_move_module(sender: str, name: str, bytecode: str, abi: dict):
+async def deploy_move_module(request: MoveDeployRequest):
     """Deploy a Move module"""
-    result = chain.move_vm.deploy_module(sender, name, bytecode, abi)
+    result = chain.move_vm.deploy_module(request.sender, request.name, request.bytecode, request.abi)
     if not result.success:
         raise HTTPException(status_code=400, detail=result.error)
     return result.to_dict()
 
 @api_router.post("/move/execute")
-async def execute_move_function(
-    sender: str,
-    module_id: str,
-    function_name: str,
-    type_args: list = [],
-    args: list = [],
-    gas_limit: int = None
-):
+async def execute_move_function(request: MoveExecuteRequest):
     """Execute a Move function"""
     result = chain.move_vm.execute_function(
-        sender, module_id, function_name, type_args, args, gas_limit
+        request.sender, request.module_id, request.function_name, 
+        request.type_args, request.args, request.gas_limit
     )
     if not result.success:
         raise HTTPException(status_code=400, detail=result.error)
