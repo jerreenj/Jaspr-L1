@@ -60,13 +60,13 @@ class JasprChain:
     TOTAL_SUPPLY = 1_000_000_000  # 1 billion JASPR (no decimals)
     DECIMALS = 0
     
-    # Distribution (in base units)
-    COMMUNITY_INCENTIVES = 520_000_000_000_000_000  # 52%
-    TREASURY_RESERVE = 150_000_000_000_000_000      # 15%
-    LIQUIDITY_MARKET_MAKING = 100_000_000_000_000_000  # 10%
-    TEAM_ADVISORS = 100_000_000_000_000_000         # 10%
-    INVESTORS = 80_000_000_000_000_000              # 8%
-    ECOSYSTEM_PARTNERSHIPS = 50_000_000_000_000_000 # 5%
+    # Distribution (1 JASPR = 1, no decimals)
+    COMMUNITY_INCENTIVES = 520_000_000   # 52%
+    TREASURY_RESERVE = 150_000_000       # 15%
+    LIQUIDITY_MARKET_MAKING = 100_000_000  # 10%
+    TEAM_ADVISORS = 100_000_000          # 10%
+    INVESTORS = 80_000_000               # 8%
+    ECOSYSTEM_PARTNERSHIPS = 50_000_000  # 5%
     
     def __init__(self):
         # Persistence layer
