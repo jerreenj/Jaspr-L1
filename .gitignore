@@ -1,109 +1,60 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# IDE and editors
-.idea/
-.vscode/
-
 # Dependencies
 node_modules/
-/node_modules
-/.pnp
+.pnp
 .pnp.js
-.yarn/install-state.gz
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+.yarn/
 
-# Testing
-/coverage
-
-# Next.js
-/.next/
-/out/
-next-env.d.ts
-*.tsbuildinfo
-
-# Production builds
+# Build outputs
 /build
 dist/
-dist
+/.next/
+/out/
+/coverage
+*.tsbuildinfo
 
-# Environment files (comprehensive coverage)
-
-*token.json*
-*credentials.json*
-
-# Logs and debug files
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-dump.rdb
-
-# System files
-.DS_Store
-*.pem
+# Rust
+rust-core/target/
 
 # Python
 __pycache__/
-*pyc*
+*.pyc
 venv/
 .venv/
+.pytest_cache/
+.ruff_cache/
 
-# Development tools
-chainlit.md
-.chainlit
-.ipynb_checkpoints/
-.ac
+# Environment
+*.env
+*.env.*
 
-# Deployment
-.vercel
+# IDE
+.idea/
+.vscode/
 
-# Data and databases
-agenthub/agents/youtube/db
+# System
+.DS_Store
+*.pem
 
-# Archive files and large assets
-**/*.zip
-**/*.tar.gz
-**/*.tar
-**/*.tgz
+# Logs
+npm-debug.log*
+yarn-debug.log*
+*.log
+dump.rdb
+
+# Platform specific
+.emergent/
+.vercel/
+
+# Large files
+*.zip
+*.tar.gz
+*.tar
 *.pack
 *.deb
-*.dylib
-
-# Build caches
-.cache/
-
-# Mobile development
-android-sdk/ -e 
-# Environment files
-*.env
-*.env.*
 -e 
 # Environment files
 *.env
 *.env.*
--e 
-# Environment files
-*.env
-*.env.*
-rust-core/target/debug/build/librocksdb-sys-301060f2d7a4dd1c/out/librocksdb.a
-rust-core/target/debug/deps/liblibrocksdb_sys-0b3a033249f2548c.rlib
-rust-core/target/debug/deps/jasprchain-40abf018dc70dfc6
-rust-core/target/debug/jasprchain
-rust-core/target/debug/deps/jasprchain-965749f595d5c113
-rust-core/target/debug/deps/jaspr_node-6491f7f6f031e7b2
-rust-core/target/debug/deps/jaspr_move_vm-8e5688345e59da0f
-rust-core/target/debug/deps/jaspr_state-f3bfca3504970a6b
-rust-core/target/debug/deps/jaspr_consensus-95daafce68910b00
-rust-core/target/debug/deps/jaspr_executor-fb34d6881aecf189
--e 
-# Environment files
-*.env
-*.env.*
-rust-core/target/debug/deps/jasprchain-cb3524d90b8fd267
 -e 
 # Environment files
 *.env

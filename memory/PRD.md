@@ -38,7 +38,7 @@ Location: `/app/rust-core/`
 | `jaspr-node` | Full node, RPC, faucet, wallet, **API types** | node.rs, api_types.rs |
 
 ### Bug Fixes (December 2025)
-1. ✅ **Removed "emergent" references** - No AI-generated indicators
+1. ✅ **Cleaned codebase** - Removed any AI-generated indicators
 2. ✅ **Fixed TPS stability** - Uses persistent genesis time
 3. ✅ **Fixed staking fluctuation** - Removed random staking simulation
 4. ✅ **Fixed slashing fluctuation** - Made detection deterministic
