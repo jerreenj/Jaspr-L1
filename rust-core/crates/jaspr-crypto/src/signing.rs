@@ -1,13 +1,32 @@
 //! Digital signature operations
 
 use ed25519_dalek::{Signer as DalekSigner, Verifier as DalekVerifier};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Deserializer, Serializer};
 use crate::keys::{KeyPair, PrivateKey, PublicKey};
 use jaspr_types::{Transaction, SignedTransaction, HashValue};
 
 /// Ed25519 signature (64 bytes)
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Signature([u8; 64]);
+
+impl Serialize for Signature {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.to_hex())
+    }
+}
+
+impl<'de> Deserialize<'de> for Signature {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        Self::from_hex(&s).map_err(serde::de::Error::custom)
+    }
+}
 
 impl Signature {
     /// Create from bytes
