@@ -1,0 +1,15 @@
+[package]
+name = "jaspr-state"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jaspr-types = { path = "../jaspr-types" }
+jaspr-crypto = { path = "../jaspr-crypto" }
+rocksdb = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+borsh = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+parking_lot = "0.12"
