@@ -1,0 +1,64 @@
+[package]
+name = "jasprchain"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jaspr Labs <dev@jaspr.io>"]
+description = "JasprChain - High-performance L1 blockchain with Move VM"
+license = "MIT"
+
+[workspace]
+members = [
+    "crates/jaspr-types",
+    "crates/jaspr-crypto",
+    "crates/jaspr-state",
+    "crates/jaspr-consensus",
+    "crates/jaspr-executor",
+    "crates/jaspr-move-vm",
+    "crates/jaspr-network",
+    "crates/jaspr-node",
+]
+
+[workspace.dependencies]
+# Crypto
+ed25519-dalek = { version = "2.1", features = ["rand_core"] }
+sha2 = "0.10"
+sha3 = "0.10"
+blake3 = "1.5"
+rand = "0.8"
+hex = "0.4"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+bincode = "1.3"
+borsh = { version = "1.3", features = ["derive"] }
+
+# Async
+tokio = { version = "1.35", features = ["full"] }
+async-trait = "0.1"
+futures = "0.3"
+
+# Storage
+rocksdb = "0.22"
+
+# Networking
+libp2p = { version = "0.53", features = ["tcp", "noise", "yamux", "gossipsub", "mdns", "tokio"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Move VM (Aptos fork)
+move-core-types = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" }
+move-vm-runtime = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" }
+move-vm-types = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" }
+move-binary-format = { git = "https://github.com/aptos-labs/aptos-core", branch = "main" }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
