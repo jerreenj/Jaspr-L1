@@ -59,3 +59,4 @@ dump.rdb
 # Environment files
 *.env
 *.env.*
+data/
