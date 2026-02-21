@@ -49,7 +49,7 @@ function ValidatorCard({ validator, onSelect, isSelected, totalStake }) {
         </div>
         <div>
           <p className="text-zinc-500">Fee</p>
-          <p className="font-mono text-white">{(validator.commission_rate / 100).toFixed(1)}%</p>
+          <p className="font-mono text-white">{validator.commission_rate?.toFixed(1) || "5.0"}%</p>
         </div>
       </div>
       
