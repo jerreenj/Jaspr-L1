@@ -296,19 +296,27 @@ async def get_staking_info(address: str):
     stakes = chain.get_all_stakes(address)
     balance = chain.get_balance(address)
     
+    # Calculate estimated rewards
+    validators_with_rewards = []
+    for v_addr, amount in stakes.items():
+        validator = chain.validator_set.get_validator(v_addr)
+        if validator:
+            apy = chain.calculate_validator_apy(v_addr)
+            estimated_daily_reward = (amount * apy / 100) / 365
+            validators_with_rewards.append({
+                "address": v_addr,
+                "staked": amount,
+                "apy": apy,
+                "estimated_daily_reward": int(estimated_daily_reward),
+                "validator_info": validator.to_dict()
+            })
+    
     return {
         "address": address,
         "balance": balance,
         "stakes": stakes,
         "total_staked": sum(stakes.values()),
-        "validators": [
-            {
-                "address": v_addr,
-                "staked": amount,
-                "validator_info": chain.validator_set.get_validator(v_addr).to_dict() if chain.validator_set.get_validator(v_addr) else None
-            }
-            for v_addr, amount in stakes.items()
-        ]
+        "validators": validators_with_rewards
     }
 
 # ------------ Mempool ------------
