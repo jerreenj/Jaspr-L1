@@ -2,7 +2,8 @@
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Serialize};
-use crate::{Address, HashValue, Hasher, BlockHeight, Timestamp, MerkleTree};
+use crate::{Address, HashValue, Hasher, BlockHeight, Timestamp};
+use crate::hash::MerkleTree;
 
 /// Block header containing metadata
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize, Serialize, Deserialize)]
