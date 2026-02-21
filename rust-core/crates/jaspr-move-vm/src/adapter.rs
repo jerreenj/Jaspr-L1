@@ -230,7 +230,7 @@ impl VmAdapter for MoveVmAdapter {
         self.module_cache.put(module_id, cached);
         
         let mut output = VmOutput::success(gas_cost);
-        output.add_event("ModulePublished".to_string(), module_name.into_bytes());
+        output.add_event("ModulePublished".to_string(), module_name.clone().into_bytes());
         output.module_deploys.push((sender, module_name.clone(), bytecode.to_vec()));
         
         info!(module = %module_name, sender = %sender, "Module deployed");
