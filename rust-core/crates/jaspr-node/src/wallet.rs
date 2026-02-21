@@ -334,7 +334,7 @@ impl TransactionBuilder {
     pub fn deploy_module(mut self, bytecode: Vec<u8>) -> Self {
         self.payload = Some(TransactionPayload::ModuleDeploy {
             bytecode,
-            abi: None,
+            abi: String::new(),
         });
         self
     }
