@@ -22,26 +22,26 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, color = "cyan" })
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`card rounded-sm p-6 bg-gradient-to-br ${colorClasses[color]}`}
+      className={`card rounded-sm p-3 md:p-6 bg-gradient-to-br ${colorClasses[color]}`}
       data-testid={`stat-${title.toLowerCase().replace(/\s+/g, "-")}`}
     >
       <div className="flex items-start justify-between">
-        <div>
-          <p className="font-mono text-xs text-zinc-500 uppercase tracking-widest mb-2">{title}</p>
-          <p className="font-unbounded text-3xl font-bold text-white">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="font-mono text-[10px] md:text-xs text-zinc-500 uppercase tracking-widest mb-1 md:mb-2 truncate">{title}</p>
+          <p className="font-unbounded text-xl md:text-3xl font-bold text-white truncate">{value}</p>
           {subtitle && (
-            <p className="font-mono text-xs text-zinc-400 mt-1">{subtitle}</p>
+            <p className="font-mono text-[10px] md:text-xs text-zinc-400 mt-1 hidden md:block">{subtitle}</p>
           )}
         </div>
-        <div className="p-3 rounded-sm bg-zinc-900/50">
-          <Icon className={`w-6 h-6 text-${color}-500`} />
+        <div className="p-2 md:p-3 rounded-sm bg-zinc-900/50 ml-2">
+          <Icon className={`w-4 h-4 md:w-6 md:h-6 text-${color}-500`} />
         </div>
       </div>
       {trend && (
-        <div className={`flex items-center gap-1 mt-4 text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}>
-          {trend > 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+        <div className={`flex items-center gap-1 mt-2 md:mt-4 text-xs md:text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}>
+          {trend > 0 ? <ArrowUpRight className="w-3 h-3 md:w-4 md:h-4" /> : <ArrowDownRight className="w-3 h-3 md:w-4 md:h-4" />}
           <span className="font-mono">{Math.abs(trend)}%</span>
-          <span className="text-zinc-500 text-xs">vs last hour</span>
+          <span className="text-zinc-500 text-[10px] md:text-xs hidden sm:inline">vs last hour</span>
         </div>
       )}
     </motion.div>
