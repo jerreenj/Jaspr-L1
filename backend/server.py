@@ -312,9 +312,12 @@ async def get_markets():
         markets.append(stats)
     return {"markets": markets}
 
-@api_router.get("/dex/orderbook/{market}")
+@api_router.get("/dex/orderbook/{market:path}")
 async def get_orderbook(market: str, depth: int = 20):
     """Get orderbook for a market"""
+    # Decode URL-encoded market names
+    import urllib.parse
+    market = urllib.parse.unquote(market)
     orderbook = chain.get_orderbook(market, depth)
     if not orderbook:
         raise HTTPException(status_code=404, detail="Market not found")
