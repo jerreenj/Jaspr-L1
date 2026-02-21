@@ -813,7 +813,8 @@ async def startup_event():
             version="0.1.0",
             chain_height=chain.height,
             is_validator=is_validator,
-            reputation=random.randint(80, 100)
+            reputation=random.randint(80, 100),
+            is_simulated=True  # Mark as simulated to skip cleanup
         )
         chain.p2p.peers[peer_id] = peer
     
