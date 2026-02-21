@@ -174,7 +174,29 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [networkStats, setNetworkStats] = useState(null);
   
-  // Fetch network stats
+  // WebSocket for real-time network stats
+  useEffect(() => {
+    const wsUrl = API.replace('/api', '').replace('https://', 'wss://').replace('http://', 'ws://');
+    const ws = new WebSocket(`${wsUrl}/ws`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'stats_update' || data.type === 'new_block') {
+        setNetworkStats(prev => ({
+          ...prev,
+          height: data.data.height || prev?.height,
+          tps: data.data.tps || prev?.tps,
+          total_transactions: data.data.total_transactions || prev?.total_transactions
+        }));
+      }
+    };
+    
+    ws.onerror = (e) => console.error('WebSocket error:', e);
+    
+    return () => ws.close();
+  }, []);
+  
+  // Fetch network stats (initial and periodic refresh)
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -186,7 +208,7 @@ function App() {
     };
     
     fetchStats();
-    const interval = setInterval(fetchStats, 5000);
+    const interval = setInterval(fetchStats, 3000);  // Refresh every 3 seconds
     return () => clearInterval(interval);
   }, []);
   
