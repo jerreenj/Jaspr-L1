@@ -201,7 +201,7 @@ async def get_wallet(address: str):
     return {
         "address": address,
         "balance": balance,
-        "balance_formatted": f"{balance / 1_000_000_000:.4f} JSP",
+        "balance_formatted": f"{balance / 1_000_000_000:.4f} JASPR",
         "mpc_wallet": wallet.export_public_info() if wallet else None,
         "aa_wallet": aa_wallet.to_dict() if aa_wallet else None,
         "stakes": stakes,
@@ -215,7 +215,7 @@ async def get_balance(address: str):
     return {
         "address": address,
         "balance": balance,
-        "balance_formatted": f"{balance / 1_000_000_000:.4f} JSP"
+        "balance_formatted": f"{balance / 1_000_000_000:.4f} JASPR"
     }
 
 # ------------ Transactions ------------
@@ -283,7 +283,7 @@ async def get_staking_stats():
     
     return {
         "total_staked": total_stake,
-        "total_staked_formatted": f"{total_stake / 1_000_000_000_000:.2f}K JSP",
+        "total_staked_formatted": f"{total_stake / 1_000_000_000_000:.2f}K JASPR",
         "active_validators": len(validators),
         "average_apy": round(avg_apy, 2),
         "network_security_ratio": round((total_stake / (total_stake + 1_000_000_000_000)) * 100, 2),
@@ -305,7 +305,7 @@ async def get_validators_for_staking():
             "address": v.address,
             "name": v.name,
             "stake": v.stake,
-            "stake_formatted": f"{v.stake / 1_000_000_000_000:.2f}K JSP",
+            "stake_formatted": f"{v.stake / 1_000_000_000_000:.2f}K JASPR",
             "stake_share": round(stake_share, 2),
             "apy": apy,
             "commission_rate": v.commission_rate / 100,  # Convert basis points to percentage
