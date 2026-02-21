@@ -691,19 +691,18 @@ async def auto_produce_blocks():
 
 # Background task for continuous staking simulation
 async def simulate_staking_activity():
-    """Simulate random staking activity to show testnet usage
+    """Simulate staking activity with STABLE values
     
-    - Random amounts: 1-10,000 JASPR
-    - Random intervals: varies
-    - Uses community pool (up to 500M tokens)
-    - Creates realistic testnet activity
+    - NO random fluctuation that affects display
+    - Validators get stable stake amounts  
+    - Only adds stake periodically (no removal for stability)
     """
     import random
     
     # Pool of simulated addresses
     simulated_addresses = [f"jaspr1sim_{i:04d}" for i in range(1, 101)]
     
-    # Initialize simulated addresses with balance from community pool
+    # Initialize simulated addresses with balance from community pool (ONCE)
     initial_allocation = 5_000_000_000_000_000  # 5M JASPR per simulated address
     for addr in simulated_addresses[:20]:  # Initialize first 20
         balance = chain.get_balance(addr)
@@ -714,54 +713,33 @@ async def simulate_staking_activity():
                 chain.state.set_account_balance(addr, initial_allocation)
                 chain.persistence.save_state(f"balance:{addr}", initial_allocation)
     
-    while True:
-        # Random interval: 5-60 seconds
-        wait_time = random.randint(5, 60)
-        await asyncio.sleep(wait_time)
-        
-        try:
-            # Pick random simulated address
-            delegator = random.choice(simulated_addresses[:20])
-            
-            # Pick random validator
-            validators = chain.validator_set.get_active_validators()
-            if not validators:
-                continue
-            validator = random.choice(validators)
-            
-            # Random amount: 1-10,000 JASPR (in base units)
-            amount = random.randint(1, 10000) * 1_000_000_000  # Convert to base units
-            
-            # Random action: 70% stake, 30% unstake
-            action = random.choices(['stake', 'unstake'], weights=[70, 30])[0]
-            
-            if action == 'stake':
+    # Track if initial stakes have been set
+    stakes_initialized = chain.persistence.get_metadata('stakes_initialized', False)
+    
+    if not stakes_initialized:
+        # Do ONE-TIME initial stake distribution to validators
+        validators = chain.validator_set.get_active_validators()
+        for i, delegator in enumerate(simulated_addresses[:10]):
+            if validators:
+                # Distribute evenly to validators
+                validator = validators[i % len(validators)]
+                amount = 1000 * 1_000_000_000  # Fixed 1000 JASPR per delegation
+                
                 balance = chain.get_balance(delegator)
                 if balance >= amount:
                     success, msg = chain.stake(delegator, validator.address, amount)
                     if success:
-                        print(f"[SIM] Staked {amount/1e9:.0f} JASPR from {delegator[:16]} to {validator.name}")
-            else:
-                stake = chain.get_stake(delegator, validator.address)
-                if stake >= amount:
-                    success, msg = chain.unstake(delegator, validator.address, amount)
-                    if success:
-                        print(f"[SIM] Unstaked {amount/1e9:.0f} JASPR from {delegator[:16]} from {validator.name}")
-            
-            # Broadcast staking update
-            await manager.broadcast({
-                "type": "staking_update",
-                "data": {
-                    "action": action,
-                    "delegator": delegator[:16] + "...",
-                    "validator": validator.name,
-                    "amount": amount,
-                    "total_staked": chain.validator_set.total_stake()
-                }
-            })
-            
-        except Exception as e:
-            print(f"Staking simulation error: {e}")
+                        print(f"[SIM-INIT] Staked 1000 JASPR from {delegator[:16]} to {validator.name}")
+        
+        chain.persistence.save_metadata('stakes_initialized', True)
+    
+    # After initialization, just maintain state - no random changes
+    while True:
+        # Long wait - no frequent random changes 
+        await asyncio.sleep(300)  # Only check every 5 minutes
+        
+        # No random staking/unstaking to prevent fluctuation
+        # The chain just maintains the stable state
 
 @app.on_event("startup")
 async def startup_event():
