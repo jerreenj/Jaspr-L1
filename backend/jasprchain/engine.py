@@ -132,12 +132,26 @@ class JasprChain:
         return len(self.blocks) - 1
     
     def create_wallet(self) -> MPCWallet:
-        """Create a new MPC wallet"""
+        """Create a new MPC wallet with testnet tokens"""
         wallet = MPCWallet()
         self._wallets[wallet.address] = wallet
         
-        # Initialize with some balance for testing
-        self.state.set_account_balance(wallet.address, 1_000_000_000_000)  # 1000 JJ
+        # Testnet: Allocate tokens from community incentives pool
+        # Each new wallet gets 10,000 JASPR for testing
+        testnet_allocation = 10_000_000_000_000  # 10,000 JASPR
+        community_balance = self.state.get_account_balance("jaspr1treasury_community")
+        
+        if community_balance >= testnet_allocation:
+            # Deduct from community pool
+            self.state.set_account_balance(
+                "jaspr1treasury_community", 
+                community_balance - testnet_allocation
+            )
+            # Credit to new wallet
+            self.state.set_account_balance(wallet.address, testnet_allocation)
+        else:
+            # Fallback for testing if pool depleted
+            self.state.set_account_balance(wallet.address, testnet_allocation)
         
         # Create AA wallet
         self.account_abstraction.get_or_create_wallet(wallet.address)
