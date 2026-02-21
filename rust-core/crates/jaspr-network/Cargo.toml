@@ -1,0 +1,17 @@
+[package]
+name = "jaspr-network"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jaspr-types = { path = "../jaspr-types" }
+jaspr-crypto = { path = "../jaspr-crypto" }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+borsh = { workspace = true }
+parking_lot = "0.12"
