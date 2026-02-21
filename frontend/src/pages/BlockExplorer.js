@@ -11,6 +11,26 @@ function BlockList() {
   const [blocks, setBlocks] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // WebSocket for real-time block updates
+  useEffect(() => {
+    const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+    const ws = new WebSocket(`${wsUrl}/ws`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_block') {
+        setBlocks(prev => {
+          const newBlocks = [data.data, ...prev.slice(0, 19)];
+          return newBlocks;
+        });
+      }
+    };
+    
+    ws.onerror = (e) => console.error('WebSocket error:', e);
+    
+    return () => ws.close();
+  }, []);
+  
   useEffect(() => {
     const fetchBlocks = async () => {
       try {
@@ -24,7 +44,7 @@ function BlockList() {
     };
     
     fetchBlocks();
-    const interval = setInterval(fetchBlocks, 5000);
+    const interval = setInterval(fetchBlocks, 3000);  // Refresh every 3 seconds
     return () => clearInterval(interval);
   }, []);
   
