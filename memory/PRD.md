@@ -8,8 +8,8 @@ Build JasprChain - a high-performance Layer 1 blockchain (CORE ONLY, no applicat
 - AI Sentinel with real ML risk scoring
 - MPC + Account Abstraction wallets
 - <2s deterministic finality
-- $JJ native token
-- Staking/Unstaking functionality
+- **$JSP native token** (used for transactions, not public/airdrop)
+- Full validator delegation staking with dynamic APY calculation
 
 ## Architecture
 
@@ -52,13 +52,13 @@ Mirrors Rust 1:1 for testing and dashboard
 - Block Explorer - Block/TX details  
 - Validators - Stake distribution
 - Wallet - MPC wallet creation
-- **Staking** - Stake/Unstake to validators
+- **Staking** - Validator delegation with dynamic APY
 - AI Sentinel - Guard modes
 - Mempool - Priority lanes
 
-## What's Been Implemented (Jan 2026)
+## What's Been Implemented (Dec 2025)
 
-### Core L1 Features
+### Core L1 Features ✅
 - ✅ BLS12-381 consensus signatures (blst crate)
 - ✅ Ed25519 wallet keys (ed25519-dalek)
 - ✅ VRF-based proposer selection
@@ -70,20 +70,49 @@ Mirrors Rust 1:1 for testing and dashboard
 - ✅ Account Abstraction (spending limits, blocked addresses)
 - ✅ AI Sentinel with ML scoring
 - ✅ Mempool with 6 priority lanes
-- ✅ **Staking/Unstaking** functionality
-- ✅ Complete Rust codebase for production
+- ✅ **Full Staking/Unstaking with Dynamic APY**
+- ✅ $JSP token symbol throughout
+
+### Token: $JSP
+- Used internally for transactions
+- NOT public/airdrop distributed
+- Initial wallet balance: 1000 $JSP
+- Stake/Unstake supported
+
+### Staking Features
+- Dynamic APY calculation per validator
+- Base rate: 8% annual
+- Performance bonus: up to 4% (based on uptime + blocks proposed)
+- Stake concentration penalty for >40% stake share
+- Commission deduction (default 5%)
+- Average APY: ~9.5%
+- 14-day unbonding period (simulated)
 
 ### Removed (Application Layer - Build on Top)
 - ❌ DEX (not L1 - build as smart contract)
 - ❌ NFTs, tokens (not L1 - deploy via Move VM)
 
-## Rust Build Instructions
+## API Endpoints
 
-```bash
-cd /app/rust-core/jasprchain
-cargo build --release
-cargo run --release -- --rpc-port 8545 --p2p-port 30303
-```
+### Staking APIs
+- `GET /api/staking/stats/overview` - Network staking statistics
+- `GET /api/staking/validators` - Validators with APY info
+- `POST /api/staking/stake` - Stake tokens
+- `POST /api/staking/unstake` - Unstake tokens
+- `GET /api/staking/{address}` - User staking info
+
+### Core APIs
+- `GET /api/health` - Chain health
+- `GET /api/network/stats` - Network statistics
+- `GET /api/blocks` - Block list
+- `GET /api/validators` - Validator list
+- `POST /api/wallets/create` - Create MPC wallet
+- `GET /api/sentinel` - AI Sentinel status
+
+## Test Results
+- Backend: 27/27 tests passed (100%)
+- Frontend: All tests passed (100%)
+- Test report: `/app/test_reports/iteration_2.json`
 
 ## Prioritized Backlog
 
@@ -96,13 +125,14 @@ cargo run --release -- --rpc-port 8545 --p2p-port 30303
 ### P1 (High)
 - [ ] RPC server (JSON-RPC 2.0)
 - [ ] Light client support
-- [ ] Unbonding period for unstaking
+- [ ] Actual unbonding period implementation
 - [ ] Slashing implementation
 
 ### P2 (Medium)
 - [ ] Move module deployment
 - [ ] Gas estimation
 - [ ] Archive node support
+- [ ] Validator rewards distribution
 
 ## Next Tasks
 1. Add libp2p peer discovery
@@ -110,3 +140,9 @@ cargo run --release -- --rpc-port 8545 --p2p-port 30303
 3. Add RocksDB for block/state persistence
 4. Move VM contract execution
 5. Testnet deployment scripts
+
+## MOCKED Components (Simulation)
+- Blockchain consensus is simulated (not real distributed consensus)
+- BLS signatures are simulated (not real cryptographic signatures)
+- MPC wallet uses simplified crypto (not real multi-party computation)
+- AI Sentinel ML is mocked (not real machine learning model)
