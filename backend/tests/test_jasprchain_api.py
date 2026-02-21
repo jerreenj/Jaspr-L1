@@ -33,8 +33,8 @@ class TestHealthAndNetwork:
         assert data["chain_id"] == 1
         assert "height" in data
         assert "validators" in data
-        assert data["validators"]["total"] == 4
-        assert data["validators"]["active"] == 4
+        assert data["validators"]["total"] == 20  # Updated from 4 to 20 validators
+        assert data["validators"]["active"] == 20
         assert "mempool" in data
         assert "sentinel" in data
         assert "finality" in data
@@ -146,16 +146,18 @@ class TestValidators:
         assert response.status_code == 200
         data = response.json()
         assert "validators" in data
-        assert len(data["validators"]) == 4
-        assert data["total_validators"] == 4
-        assert data["active_validators"] == 4
+        assert len(data["validators"]) == 20  # Updated from 4 to 20 validators
+        assert data["total_validators"] == 20
+        assert data["active_validators"] == 20
         
-        # Verify validator names
+        # Verify validator names (original 4 + 16 new)
         names = [v["name"] for v in data["validators"]]
         assert "Jaspr Labs" in names
         assert "Foundation" in names
         assert "Community" in names
         assert "Ecosystem" in names
+        assert "Alpha Node" in names
+        assert "Pi Node" in names
     
     def test_get_single_validator(self):
         """Test getting a single validator"""
@@ -191,7 +193,7 @@ class TestStaking:
         assert response.status_code == 200
         data = response.json()
         assert "validators" in data
-        assert len(data["validators"]) == 4
+        assert len(data["validators"]) == 20  # Updated from 4 to 20 validators
         assert "total_stake" in data
         
         # Verify APY is present for each validator
@@ -210,7 +212,7 @@ class TestStaking:
         data = response.json()
         assert "total_staked" in data
         assert "active_validators" in data
-        assert data["active_validators"] == 4
+        assert data["active_validators"] == 20  # Updated from 4 to 20 validators
         assert "average_apy" in data
         assert data["average_apy"] > 0
         assert "unbonding_period_days" in data
