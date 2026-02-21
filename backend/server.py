@@ -198,7 +198,7 @@ async def get_balance(address: str):
     return {
         "address": address,
         "balance": balance,
-        "balance_formatted": f"{balance / 1_000_000_000:.4f} JJ"
+        "balance_formatted": f"{balance / 1_000_000_000:.4f} JSP"
     }
 
 # ------------ Transactions ------------
