@@ -93,11 +93,24 @@ class JasprChain:
         self._initialize()
     
     def _initialize(self):
-        """Initialize the blockchain"""
+        """Initialize the blockchain with proper tokenomics"""
         # Create genesis block
         genesis = create_genesis_block()
         self.blocks.append(genesis)
         self._blocks_by_hash[genesis.hash] = genesis
+        
+        # Initialize treasury accounts (Testnet - from Litepaper tokenomics)
+        treasury_accounts = {
+            "jaspr1treasury_community": self.COMMUNITY_INCENTIVES,      # 52% - Community
+            "jaspr1treasury_reserve": self.TREASURY_RESERVE,            # 15% - Treasury
+            "jaspr1treasury_liquidity": self.LIQUIDITY_MARKET_MAKING,   # 10% - Liquidity
+            "jaspr1treasury_team": self.TEAM_ADVISORS,                  # 10% - Team
+            "jaspr1treasury_investors": self.INVESTORS,                  # 8% - Investors
+            "jaspr1treasury_ecosystem": self.ECOSYSTEM_PARTNERSHIPS,    # 5% - Ecosystem
+        }
+        
+        for addr, balance in treasury_accounts.items():
+            self.state.set_account_balance(addr, balance)
         
         # Initialize default validators (HyperLiquid style - start with 4)
         validators_config = [
