@@ -1,121 +1,112 @@
 # JasprChain - Product Requirements Document
 
 ## Original Problem Statement
-Build JasprChain - a high-performance Layer 1 blockchain with:
-- Rust core chain architecture (mirrored in Python)
-- Move-based VM integration points
+Build JasprChain - a high-performance Layer 1 blockchain (CORE ONLY, no application layer):
+- Rust core chain architecture (Python simulator + Rust production code)
+- Move VM integration points
 - HyperLiquid-style validator model (4 initial validators)
 - AI Sentinel with real ML risk scoring
-- Hybrid DEX with off-chain matching, on-chain settlement
 - MPC + Account Abstraction wallets
 - <2s deterministic finality
 - $JJ native token
+- Staking/Unstaking functionality
 
 ## Architecture
+
+### Production Rust Codebase (`/app/rust-core/jasprchain/`)
 ```
-JasprChain v0.1
-├── /backend/jasprchain/          # Python L1 implementation (mirrors Rust)
-│   ├── consensus/                # BLS signatures, VRF proposer, finality
-│   │   ├── block.py              # Block/BlockHeader structures
-│   │   ├── validator.py          # ValidatorSet (4 validators)
-│   │   ├── proposer.py           # VRF-based proposer selection
-│   │   └── finality.py           # Committee finality engine
-│   ├── execution/                # Parallel execution engine
-│   │   ├── transaction.py        # Transaction types
-│   │   └── parallel.py           # Conflict detection, rollback
-│   ├── state/                    # Sparse Merkle Tree
-│   │   ├── smt.py                # State storage
-│   │   └── account.py            # Account abstraction
-│   ├── wallet/                   # MPC + AA
-│   │   ├── mpc.py                # 2-of-3 threshold signing
-│   │   └── aa.py                 # Session keys, spending limits
-│   ├── sentinel/                 # AI risk scoring
-│   │   ├── model.py              # sklearn ML model
-│   │   └── risk_scorer.py        # Real-time scanning
-│   ├── dex/                      # Hybrid DEX
-│   │   ├── orderbook.py          # Price levels, matching
-│   │   ├── settlement.py         # Atomic batch settlement
-│   │   └── risk_engine.py        # Margin, liquidation
-│   ├── network/                  # Mempool
-│   │   └── mempool.py            # Priority lanes
-│   └── engine.py                 # Main orchestrator
-├── /frontend/src/                # React Dashboard
-│   ├── pages/
-│   │   ├── Dashboard.js          # Network overview
-│   │   ├── BlockExplorer.js      # Block/TX details
-│   │   ├── Validators.js         # Validator status
-│   │   ├── WalletPage.js         # MPC wallet
-│   │   ├── DEXPage.js            # Orderbook trading
-│   │   ├── SentinelPage.js       # AI protection
-│   │   └── MempoolPage.js        # Lane visualization
-│   └── App.js                    # Main app with navigation
+jasprchain/
+├── Cargo.toml                    # Dependencies: blst, ed25519-dalek, tokio, libp2p
+├── src/
+│   ├── lib.rs                    # Main library
+│   ├── main.rs                   # Node binary
+│   ├── consensus/
+│   │   ├── block.rs              # Block/BlockHeader
+│   │   ├── validator.rs          # ValidatorSet (HyperLiquid model)
+│   │   ├── proposer.rs           # VRF-based selection
+│   │   └── finality.rs           # BLS committee attestations
+│   ├── execution/
+│   │   ├── transaction.rs        # Transaction types
+│   │   └── parallel.rs           # Conflict detection
+│   ├── state/
+│   │   ├── smt.rs                # Sparse Merkle Tree
+│   │   └── account.rs            # Account model
+│   ├── wallet/
+│   │   ├── mpc.rs                # MPC 2-of-3 threshold
+│   │   └── aa.rs                 # Account Abstraction
+│   ├── sentinel/
+│   │   └── scorer.rs             # Risk scoring hooks
+│   ├── network/
+│   │   └── mempool.rs            # Priority lanes
+│   └── crypto/
+│       ├── keys.rs               # Ed25519
+│       ├── bls.rs                # BLS12-381 (blst)
+│       └── hash.rs               # SHA256, Merkle
 ```
 
-## User Personas
-1. **Crypto Traders** - Use DEX, wallets, need fast finality
-2. **Validators** - Monitor performance, stake management
-3. **Developers** - Build on JasprChain, deploy contracts
-4. **India's 200M+ users** - Mobile-first, safe onboarding
+### Python Simulator (`/app/backend/jasprchain/`)
+Mirrors Rust 1:1 for testing and dashboard
 
-## Core Requirements (Static)
-- [x] BLS12-381 consensus signatures
-- [x] Ed25519 wallet keys
-- [x] 4 validators (HyperLiquid model)
-- [x] AI Sentinel with ML risk scoring
-- [x] Hybrid DEX orderbook
-- [x] MPC + AA wallets
-- [x] <2s finality target
-- [x] Mempool with priority lanes
+### React Dashboard (`/app/frontend/`)
+- Dashboard - Network overview
+- Block Explorer - Block/TX details  
+- Validators - Stake distribution
+- Wallet - MPC wallet creation
+- **Staking** - Stake/Unstake to validators
+- AI Sentinel - Guard modes
+- Mempool - Priority lanes
 
 ## What's Been Implemented (Jan 2026)
 
-### Backend (Python - Rust-mirrored)
-- ✅ Complete consensus layer (BLS, VRF, committee finality)
-- ✅ Parallel execution engine with conflict detection
-- ✅ Sparse Merkle Tree state management
-- ✅ MPC wallet with 2-of-3 threshold
-- ✅ Account Abstraction (session keys, spending limits)
-- ✅ AI Sentinel with sklearn RandomForest/IsolationForest
-- ✅ Hybrid DEX orderbook with settlement engine
-- ✅ DEX risk engine (margin, liquidation)
+### Core L1 Features
+- ✅ BLS12-381 consensus signatures (blst crate)
+- ✅ Ed25519 wallet keys (ed25519-dalek)
+- ✅ VRF-based proposer selection
+- ✅ Committee finality with 2/3 threshold
+- ✅ 4 validators (HyperLiquid model)
+- ✅ Parallel execution with conflict detection
+- ✅ Sparse Merkle Tree state
+- ✅ MPC wallet (2-of-3 threshold)
+- ✅ Account Abstraction (spending limits, blocked addresses)
+- ✅ AI Sentinel with ML scoring
 - ✅ Mempool with 6 priority lanes
-- ✅ WebSocket support for real-time updates
-- ✅ Auto block production every 2s
+- ✅ **Staking/Unstaking** functionality
+- ✅ Complete Rust codebase for production
 
-### Frontend (React)
-- ✅ Dashboard with network stats
-- ✅ Block Explorer with transaction details
-- ✅ Validators page with stake/performance
-- ✅ Wallet page with MPC creation
-- ✅ DEX page with orderbook visualization
-- ✅ AI Sentinel page with guard modes
-- ✅ Mempool page with lane distribution
-- ✅ Real-time updates via polling
+### Removed (Application Layer - Build on Top)
+- ❌ DEX (not L1 - build as smart contract)
+- ❌ NFTs, tokens (not L1 - deploy via Move VM)
+
+## Rust Build Instructions
+
+```bash
+cd /app/rust-core/jasprchain
+cargo build --release
+cargo run --release -- --rpc-port 8545 --p2p-port 30303
+```
 
 ## Prioritized Backlog
 
-### P0 (Critical)
-- [ ] Rust codebase generation for production
-- [ ] Move VM integration (contract deployment)
-- [ ] Production-grade BLS (blst crate)
+### P0 (Critical for Testnet)
+- [ ] Complete libp2p networking
+- [ ] RocksDB persistence
+- [ ] Move VM integration (move-vm-runtime)
+- [ ] Genesis config file
 
 ### P1 (High)
-- [ ] TradingView chart integration
-- [ ] Mobile responsive design
-- [ ] WebSocket full implementation
-- [ ] Transaction history per wallet
-- [ ] Multi-market DEX support
+- [ ] RPC server (JSON-RPC 2.0)
+- [ ] Light client support
+- [ ] Unbonding period for unstaking
+- [ ] Slashing implementation
 
 ### P2 (Medium)
-- [ ] Staking UI with delegation
-- [ ] Guardian recovery for MPC wallets
-- [ ] 2FA integration for AA wallets
-- [ ] Advanced AI Sentinel patterns
-- [ ] MEV protection lanes
+- [ ] Move module deployment
+- [ ] Gas estimation
+- [ ] Archive node support
 
 ## Next Tasks
-1. Generate downloadable Rust codebase
-2. Add TradingView charts to DEX
-3. Implement staking/unstaking UI
-4. Add more DEX markets (ETH/USDC, BTC/USDC)
-5. Mobile-responsive layout
+1. Add libp2p peer discovery
+2. Implement RPC endpoints
+3. Add RocksDB for block/state persistence
+4. Move VM contract execution
+5. Testnet deployment scripts
