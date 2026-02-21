@@ -12,4 +12,4 @@ pub mod vm_adapter;
 
 pub use executor::{TransactionExecutor, ExecutionResult};
 pub use gas::{GasMeter, GasConfig};
-pub use vm_adapter::VmAdapter;
+pub use vm_adapter::{VmAdapter, VmContext, VmOutput};
