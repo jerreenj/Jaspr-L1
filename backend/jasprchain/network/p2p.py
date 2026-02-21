@@ -484,7 +484,7 @@ class P2PNetwork:
                     peer.reputation = max(0, peer.reputation - 10)
     
     async def _peer_cleanup_loop(self):
-        """Remove inactive peers"""
+        """Remove inactive peers (skip simulated ones)"""
         while self.is_running:
             await asyncio.sleep(60)  # Check every minute
             
@@ -492,6 +492,12 @@ class P2PNetwork:
             timeout_threshold = self.PEER_TIMEOUT * 1000
             
             for peer_id, peer in list(self.peers.items()):
+                # Skip simulated peers
+                if peer.is_simulated:
+                    # Update last_seen for simulated peers
+                    peer.last_seen = now
+                    continue
+                    
                 if now - peer.last_seen > timeout_threshold:
                     await self.disconnect_peer(peer_id)
                     print(f"[P2P] Disconnected inactive peer {peer_id[:8]}")
