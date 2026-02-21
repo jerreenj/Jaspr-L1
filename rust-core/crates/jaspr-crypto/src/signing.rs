@@ -116,10 +116,7 @@ impl Signer for KeyPair {
 
 impl Verifier for PublicKey {
     fn verify(&self, message: &[u8], signature: &Signature) -> bool {
-        let sig = match ed25519_dalek::Signature::from_bytes(&signature.to_bytes()) {
-            Ok(s) => s,
-            Err(_) => return false,
-        };
+        let sig = ed25519_dalek::Signature::from_bytes(&signature.to_bytes());
         self.verifying_key().verify(message, &sig).is_ok()
     }
 }
