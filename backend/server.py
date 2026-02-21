@@ -1,5 +1,7 @@
 """JasprChain API Server
-FastAPI backend for JasprChain blockchain
+FastAPI backend for JasprChain L1 Blockchain
+
+CORE L1 ONLY - No application layer (DEX, NFTs, etc.)
 """
 from fastapi import FastAPI, APIRouter, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,12 +15,11 @@ from datetime import datetime, timezone
 from jasprchain.engine import get_chain, JasprChain
 from jasprchain.execution.transaction import TransactionType
 from jasprchain.sentinel import GuardMode
-from jasprchain.dex import OrderSide, OrderType
 
 # Initialize app
 app = FastAPI(
-    title="JasprChain API",
-    description="Layer 1 Blockchain API - High-performance, AI-protected, transparent",
+    title="JasprChain L1 API",
+    description="Layer 1 Blockchain API - High-performance, AI-protected",
     version="0.1.0"
 )
 
@@ -46,13 +47,10 @@ class TransferRequest(BaseModel):
     recipient: str
     amount: int
 
-class OrderRequest(BaseModel):
-    trader: str
-    market: str = "JJ/USDC"
-    side: str  # "buy" or "sell"
-    order_type: str = "limit"
-    price: float
-    quantity: float
+class StakeRequest(BaseModel):
+    delegator: str
+    validator: str
+    amount: int
 
 class SentinelModeRequest(BaseModel):
     mode: str  # "passive", "warning", "enforced"
@@ -88,7 +86,7 @@ manager = ConnectionManager()
 
 @api_router.get("/")
 async def root():
-    return {"message": "JasprChain API v0.1.0", "status": "running"}
+    return {"message": "JasprChain L1 API v0.1.0", "status": "running"}
 
 @api_router.get("/health")
 async def health():
@@ -181,13 +179,16 @@ async def get_wallet(address: str):
     wallet = chain.get_wallet(address)
     balance = chain.get_balance(address)
     aa_wallet = chain.account_abstraction.wallets.get(address)
+    stakes = chain.get_all_stakes(address)
     
     return {
         "address": address,
         "balance": balance,
         "balance_formatted": f"{balance / 1_000_000_000:.4f} JJ",
         "mpc_wallet": wallet.export_public_info() if wallet else None,
-        "aa_wallet": aa_wallet.to_dict() if aa_wallet else None
+        "aa_wallet": aa_wallet.to_dict() if aa_wallet else None,
+        "stakes": stakes,
+        "total_staked": sum(stakes.values())
     }
 
 @api_router.get("/wallets/{address}/balance")
@@ -247,6 +248,69 @@ async def get_transaction(tx_hash: str):
         raise HTTPException(status_code=404, detail="Transaction not found")
     return result
 
+# ------------ Staking ------------
+
+@api_router.post("/staking/stake")
+async def stake_tokens(request: StakeRequest):
+    """Stake tokens to a validator"""
+    success, message = chain.stake(
+        delegator=request.delegator,
+        validator=request.validator,
+        amount=request.amount
+    )
+    
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+    
+    return {
+        "success": True,
+        "message": message,
+        "delegator": request.delegator,
+        "validator": request.validator,
+        "amount": request.amount
+    }
+
+@api_router.post("/staking/unstake")
+async def unstake_tokens(request: StakeRequest):
+    """Unstake tokens from a validator"""
+    success, message = chain.unstake(
+        delegator=request.delegator,
+        validator=request.validator,
+        amount=request.amount
+    )
+    
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+    
+    return {
+        "success": True,
+        "message": message,
+        "delegator": request.delegator,
+        "validator": request.validator,
+        "amount": request.amount
+    }
+
+@api_router.get("/staking/{address}")
+async def get_staking_info(address: str):
+    """Get staking info for an address"""
+    stakes = chain.get_all_stakes(address)
+    balance = chain.get_balance(address)
+    
+    return {
+        "address": address,
+        "balance": balance,
+        "stakes": stakes,
+        "total_staked": sum(stakes.values()),
+        "validators": [
+            {
+                "address": v_addr,
+                "staked": amount,
+                "validator_info": chain.validator_set.get_validator(v_addr).to_dict() if chain.validator_set.get_validator(v_addr) else None
+            }
+            for v_addr, amount in stakes.items()
+        ]
+    }
+
 # ------------ Mempool ------------
 
 @api_router.get("/mempool")
@@ -300,74 +364,6 @@ async def set_sentinel_mode(request: SentinelModeRequest):
     
     chain.sentinel.set_guard_mode(mode)
     return {"success": True, "mode": request.mode}
-
-# ------------ DEX ------------
-
-@api_router.get("/dex/markets")
-async def get_markets():
-    """Get available markets"""
-    markets = []
-    for market_name, orderbook in chain._orderbooks.items():
-        stats = orderbook.get_market_stats()
-        markets.append(stats)
-    return {"markets": markets}
-
-@api_router.get("/dex/orderbook/{market:path}")
-async def get_orderbook(market: str, depth: int = 20):
-    """Get orderbook for a market"""
-    # Decode URL-encoded market names
-    import urllib.parse
-    market = urllib.parse.unquote(market)
-    orderbook = chain.get_orderbook(market, depth)
-    if not orderbook:
-        raise HTTPException(status_code=404, detail="Market not found")
-    return orderbook
-
-@api_router.post("/dex/order")
-async def place_order(request: OrderRequest):
-    """Place a DEX order"""
-    order, trades, message = chain.place_order(
-        trader=request.trader,
-        market=request.market,
-        side=request.side,
-        order_type=request.order_type,
-        price=request.price,
-        quantity=request.quantity
-    )
-    
-    if not order:
-        raise HTTPException(status_code=400, detail=message)
-    
-    # Broadcast trades
-    for trade in trades:
-        await manager.broadcast({
-            "type": "trade",
-            "data": trade.to_dict()
-        })
-    
-    return {
-        "order": order.to_dict(),
-        "trades": [t.to_dict() for t in trades],
-        "message": message
-    }
-
-@api_router.get("/dex/trades/{market:path}")
-async def get_trades(market: str, limit: int = 50):
-    """Get recent trades for a market"""
-    import urllib.parse
-    market = urllib.parse.unquote(market)
-    trades = chain.get_recent_trades(market, limit)
-    return {"trades": trades}
-
-@api_router.get("/dex/settlements")
-async def get_settlements():
-    """Get settlement statistics"""
-    return chain.settlement_engine.get_stats()
-
-@api_router.get("/dex/risk")
-async def get_risk_stats():
-    """Get risk engine statistics"""
-    return chain.risk_engine.get_stats()
 
 # ------------ WebSocket ------------
 
