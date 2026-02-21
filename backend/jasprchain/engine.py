@@ -405,12 +405,21 @@ class JasprChain:
             return False, "Validator not found"
         
         # Deduct from balance
-        self.state.set_account_balance(delegator, balance - amount)
+        new_balance = balance - amount
+        self.state.set_account_balance(delegator, new_balance)
+        self.persistence.save_state(f"balance:{delegator}", new_balance)
         
         # Add to stake
         stake_key = f"stake:{delegator}:{validator}"
         current_stake = self.state.get(stake_key, 0)
-        self.state.set(stake_key, current_stake + amount)
+        new_stake = current_stake + amount
+        self.state.set(stake_key, new_stake)
+        self.persistence.save_state(stake_key, new_stake)
+        
+        # Track total delegated to validator
+        delegated_key = f"validator_delegated:{validator}"
+        total_delegated = self.persistence.get_state(delegated_key, 0)
+        self.persistence.save_state(delegated_key, total_delegated + amount)
         
         # Update validator stake
         validator_obj.stake += amount
@@ -418,7 +427,7 @@ class JasprChain:
         return True, f"Staked {amount} to {validator}"
     
     def unstake(self, delegator: str, validator: str, amount: int) -> tuple:
-        """Unstake tokens from a validator"""
+        """Unstake tokens from a validator - starts 14-day unbonding period"""
         stake_key = f"stake:{delegator}:{validator}"
         current_stake = self.state.get(stake_key, 0)
         
@@ -429,17 +438,72 @@ class JasprChain:
         if not validator_obj:
             return False, "Validator not found"
         
-        # Reduce stake
-        self.state.set(stake_key, current_stake - amount)
+        # Reduce active stake
+        new_stake = current_stake - amount
+        self.state.set(stake_key, new_stake)
+        self.persistence.save_state(stake_key, new_stake)
         
-        # Return to balance (in real system, would have unbonding period)
-        balance = self.get_balance(delegator)
-        self.state.set_account_balance(delegator, balance + amount)
+        # Update validator delegated total
+        delegated_key = f"validator_delegated:{validator}"
+        total_delegated = self.persistence.get_state(delegated_key, 0)
+        self.persistence.save_state(delegated_key, max(0, total_delegated - amount))
         
         # Update validator stake
         validator_obj.stake -= amount
         
-        return True, f"Unstaked {amount} from {validator}"
+        # Create unbonding entry (14-day lock period)
+        now = int(datetime.now(timezone.utc).timestamp() * 1000)
+        unlock_time = now + self.UNBONDING_PERIOD_MS
+        
+        self.persistence.add_unbonding_entry(
+            delegator=delegator,
+            validator=validator,
+            amount=amount,
+            unlock_time=unlock_time
+        )
+        
+        unlock_date = datetime.fromtimestamp(unlock_time / 1000, tz=timezone.utc)
+        return True, f"Unstaking {amount} from {validator}. Available after {unlock_date.strftime('%Y-%m-%d %H:%M UTC')} (14 days)"
+    
+    def claim_unbonded(self, delegator: str) -> tuple:
+        """Claim all tokens that have completed unbonding period"""
+        claimable = self.persistence.get_claimable_unbonding(delegator)
+        
+        if not claimable:
+            return False, "No tokens available to claim"
+        
+        total_claimed = 0
+        for entry in claimable:
+            # Add to balance
+            balance = self.get_balance(delegator)
+            new_balance = balance + entry['amount']
+            self.state.set_account_balance(delegator, new_balance)
+            self.persistence.save_state(f"balance:{delegator}", new_balance)
+            
+            # Remove unbonding entry
+            self.persistence.remove_unbonding_entry(
+                entry['delegator'],
+                entry['validator'],
+                entry['unlock_time']
+            )
+            
+            total_claimed += entry['amount']
+        
+        return True, f"Claimed {total_claimed} JASPR from {len(claimable)} unbonding entries"
+    
+    def get_unbonding_entries(self, delegator: str) -> List[dict]:
+        """Get all unbonding entries for a delegator"""
+        entries = self.persistence.get_unbonding_entries(delegator)
+        now = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        # Add remaining time info
+        for entry in entries:
+            remaining_ms = max(0, entry['unlock_time'] - now)
+            remaining_days = remaining_ms / (24 * 60 * 60 * 1000)
+            entry['remaining_days'] = round(remaining_days, 2)
+            entry['is_claimable'] = remaining_ms <= 0
+        
+        return entries
     
     def get_stake(self, delegator: str, validator: str) -> int:
         """Get staked amount"""
