@@ -14,4 +14,4 @@ pub mod service;
 pub use peer::{PeerId, PeerInfo, PeerManager};
 pub use message::{NetworkMessage, MessageType};
 pub use gossip::GossipProtocol;
-pub use service::{NetworkService, NetworkConfig};
+pub use service::{NetworkService, NetworkConfig, NetworkEvent};

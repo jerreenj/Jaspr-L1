@@ -10,5 +10,5 @@ pub mod signing;
 pub mod hashing;
 
 pub use keys::{KeyPair, PrivateKey, PublicKey};
-pub use signing::{Signature, Signer, Verifier};
+pub use signing::{Signature, Signer, Verifier, sign_transaction, verify_transaction};
 pub use hashing::{HashFunction, Hasher};
