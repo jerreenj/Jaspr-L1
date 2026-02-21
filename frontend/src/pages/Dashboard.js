@@ -284,12 +284,12 @@ export default function Dashboard({ networkStats }) {
         />
       </div>
       
-      {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main content grid - mobile responsive */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2">
           <RecentBlocks blocks={blocks} />
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <ValidatorList validators={validators} />
           <SentinelStatus sentinel={sentinel} />
         </div>
