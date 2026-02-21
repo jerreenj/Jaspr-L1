@@ -86,11 +86,28 @@ manager = ConnectionManager()
 
 @api_router.get("/")
 async def root():
-    return {"message": "JasprChain L1 API v0.1.0", "status": "running"}
+    return {
+        "message": "JasprChain L1 API v0.1.0", 
+        "status": "running",
+        "network": "testnet",
+        "token": "JASPR"
+    }
 
 @api_router.get("/health")
 async def health():
-    return {"status": "healthy", "chain_id": chain.CHAIN_ID, "height": chain.height}
+    return {
+        "status": "healthy", 
+        "chain_id": chain.CHAIN_ID, 
+        "height": chain.height,
+        "network": "testnet"
+    }
+
+# ------------ Tokenomics ------------
+
+@api_router.get("/tokenomics")
+async def get_tokenomics():
+    """Get $JASPR tokenomics from litepaper"""
+    return chain.get_tokenomics()
 
 # ------------ Network Stats ------------
 
