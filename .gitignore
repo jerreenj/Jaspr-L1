@@ -104,3 +104,7 @@ rust-core/target/debug/deps/jaspr_executor-fb34d6881aecf189
 *.env
 *.env.*
 rust-core/target/debug/deps/jasprchain-cb3524d90b8fd267
+-e 
+# Environment files
+*.env
+*.env.*
