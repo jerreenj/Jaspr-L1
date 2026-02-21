@@ -250,6 +250,60 @@ async def get_transaction(tx_hash: str):
 
 # ------------ Staking ------------
 
+@api_router.get("/staking/stats/overview")
+async def get_staking_stats():
+    """Get global staking statistics"""
+    total_stake = chain.validator_set.total_stake()
+    validators = chain.validator_set.get_active_validators()
+    
+    # Calculate network-wide stats
+    total_delegations = 0
+    for v in validators:
+        # Count unique delegators (simplified - in production would track this)
+        total_delegations += 1
+    
+    avg_apy = sum(chain.calculate_validator_apy(v.address) for v in validators) / len(validators) if validators else 0
+    
+    return {
+        "total_staked": total_stake,
+        "total_staked_formatted": f"{total_stake / 1_000_000_000_000:.2f}K JSP",
+        "active_validators": len(validators),
+        "average_apy": round(avg_apy, 2),
+        "network_security_ratio": round((total_stake / (total_stake + 1_000_000_000_000)) * 100, 2),
+        "unbonding_period_days": 14
+    }
+
+@api_router.get("/staking/validators")
+async def get_validators_for_staking():
+    """Get validators with APY information for staking"""
+    validators = chain.validator_set.get_active_validators()
+    total_stake = chain.validator_set.total_stake()
+    
+    result = []
+    for v in validators:
+        apy = chain.calculate_validator_apy(v.address)
+        stake_share = (v.stake / total_stake * 100) if total_stake > 0 else 0
+        
+        result.append({
+            "address": v.address,
+            "name": v.name,
+            "stake": v.stake,
+            "stake_formatted": f"{v.stake / 1_000_000_000_000:.2f}K JSP",
+            "stake_share": round(stake_share, 2),
+            "apy": apy,
+            "commission_rate": v.commission_rate / 100,  # Convert basis points to percentage
+            "uptime": v.stats.uptime_percentage,
+            "blocks_proposed": v.stats.blocks_proposed,
+            "active": v.active,
+            "jailed": v.jailed
+        })
+    
+    return {
+        "validators": result,
+        "total_stake": total_stake,
+        "count": len(result)
+    }
+
 @api_router.post("/staking/stake")
 async def stake_tokens(request: StakeRequest):
     """Stake tokens to a validator"""
