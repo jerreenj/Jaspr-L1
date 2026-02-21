@@ -66,7 +66,8 @@ class Peer:
             "version": self.version,
             "chain_height": self.chain_height,
             "is_validator": self.is_validator,
-            "reputation": self.reputation
+            "reputation": self.reputation,
+            "is_simulated": self.is_simulated
         }
 
 
