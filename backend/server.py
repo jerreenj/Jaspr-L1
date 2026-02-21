@@ -1,89 +1,414 @@
-from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+"""JasprChain API Server
+FastAPI backend for JasprChain blockchain
+"""
+from fastapi import FastAPI, APIRouter, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict, Any
+import asyncio
+import json
 import os
-import logging
-from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
 from datetime import datetime, timezone
 
+from jasprchain.engine import get_chain, JasprChain
+from jasprchain.execution.transaction import TransactionType
+from jasprchain.sentinel import GuardMode
+from jasprchain.dex import OrderSide, OrderType
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# Initialize app
+app = FastAPI(
+    title="JasprChain API",
+    description="Layer 1 Blockchain API - High-performance, AI-protected, transparent",
+    version="0.1.0"
+)
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# Create the main app without a prefix
-app = FastAPI()
-
-# Create a router with the /api prefix
-api_router = APIRouter(prefix="/api")
-
-
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class StatusCheckCreate(BaseModel):
-    client_name: str
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
-
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
-app.include_router(api_router)
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+api_router = APIRouter(prefix="/api")
 
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
+# ============= Pydantic Models =============
+
+class CreateWalletResponse(BaseModel):
+    address: str
+    public_key: str
+    type: str
+    threshold: str
+
+class TransferRequest(BaseModel):
+    sender: str
+    recipient: str
+    amount: int
+
+class OrderRequest(BaseModel):
+    trader: str
+    market: str = "JJ/USDC"
+    side: str  # "buy" or "sell"
+    order_type: str = "limit"
+    price: float
+    quantity: float
+
+class SentinelModeRequest(BaseModel):
+    mode: str  # "passive", "warning", "enforced"
+
+# ============= Chain Instance =============
+
+chain = get_chain()
+
+# ============= WebSocket Connections =============
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+    
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+    
+    def disconnect(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+    
+    async def broadcast(self, message: dict):
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except:
+                pass
+
+manager = ConnectionManager()
+
+# ============= API Routes =============
+
+@api_router.get("/")
+async def root():
+    return {"message": "JasprChain API v0.1.0", "status": "running"}
+
+@api_router.get("/health")
+async def health():
+    return {"status": "healthy", "chain_id": chain.CHAIN_ID, "height": chain.height}
+
+# ------------ Network Stats ------------
+
+@api_router.get("/network/stats")
+async def get_network_stats():
+    """Get comprehensive network statistics"""
+    return chain.get_network_stats()
+
+@api_router.get("/network/tps")
+async def get_tps():
+    """Get current TPS"""
+    stats = chain.get_network_stats()
+    return {
+        "current_tps": round(stats['tps'], 2),
+        "target_tps": stats['target_tps'],
+        "total_transactions": stats['total_transactions']
+    }
+
+# ------------ Blocks ------------
+
+@api_router.get("/blocks")
+async def get_blocks(limit: int = 20, offset: int = 0):
+    """Get recent blocks"""
+    blocks = chain.blocks[-(limit + offset):][:limit] if offset == 0 else chain.blocks[-(limit + offset):-offset]
+    return {
+        "blocks": [b.to_summary() for b in reversed(blocks)],
+        "total": len(chain.blocks),
+        "latest_height": chain.height
+    }
+
+@api_router.get("/blocks/{height_or_hash}")
+async def get_block(height_or_hash: str):
+    """Get block by height or hash"""
+    try:
+        key = int(height_or_hash)
+    except ValueError:
+        key = height_or_hash
+    
+    block = chain.get_block(key)
+    if not block:
+        raise HTTPException(status_code=404, detail="Block not found")
+    return block.to_dict()
+
+@api_router.post("/blocks/produce")
+async def produce_block():
+    """Manually produce a block (for testing)"""
+    try:
+        block = await chain.produce_block()
+        
+        # Broadcast to websocket clients
+        await manager.broadcast({
+            "type": "new_block",
+            "data": block.to_summary()
+        })
+        
+        return block.to_dict()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ------------ Validators ------------
+
+@api_router.get("/validators")
+async def get_validators():
+    """Get all validators"""
+    return chain.validator_set.to_dict()
+
+@api_router.get("/validators/{address}")
+async def get_validator(address: str):
+    """Get validator details"""
+    validator = chain.validator_set.get_validator(address)
+    if not validator:
+        raise HTTPException(status_code=404, detail="Validator not found")
+    return validator.to_dict()
+
+# ------------ Wallets ------------
+
+@api_router.post("/wallets/create", response_model=CreateWalletResponse)
+async def create_wallet():
+    """Create a new MPC wallet"""
+    wallet = chain.create_wallet()
+    return wallet.export_public_info()
+
+@api_router.get("/wallets/{address}")
+async def get_wallet(address: str):
+    """Get wallet details"""
+    wallet = chain.get_wallet(address)
+    balance = chain.get_balance(address)
+    aa_wallet = chain.account_abstraction.wallets.get(address)
+    
+    return {
+        "address": address,
+        "balance": balance,
+        "balance_formatted": f"{balance / 1_000_000_000:.4f} JJ",
+        "mpc_wallet": wallet.export_public_info() if wallet else None,
+        "aa_wallet": aa_wallet.to_dict() if aa_wallet else None
+    }
+
+@api_router.get("/wallets/{address}/balance")
+async def get_balance(address: str):
+    """Get wallet balance"""
+    balance = chain.get_balance(address)
+    return {
+        "address": address,
+        "balance": balance,
+        "balance_formatted": f"{balance / 1_000_000_000:.4f} JJ"
+    }
+
+# ------------ Transactions ------------
+
+@api_router.post("/transactions/transfer")
+async def create_transfer(request: TransferRequest):
+    """Create and submit a transfer transaction"""
+    wallet = chain.get_wallet(request.sender)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Sender wallet not found")
+    
+    # Create transaction
+    tx = chain.create_transaction(
+        sender=request.sender,
+        recipient=request.recipient,
+        amount=request.amount,
+        tx_type=TransactionType.TRANSFER
+    )
+    
+    # Sign transaction
+    signed_tx = chain.sign_transaction(tx, wallet)
+    
+    # Submit to mempool
+    success, message, entry = await chain.submit_transaction(signed_tx)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+    
+    # Broadcast to websocket
+    await manager.broadcast({
+        "type": "new_transaction",
+        "data": signed_tx.to_dict()
+    })
+    
+    return {
+        "success": True,
+        "tx_hash": signed_tx.hash,
+        "status": "pending",
+        "risk_score": entry.risk_score.to_dict() if entry and entry.risk_score else None
+    }
+
+@api_router.get("/transactions/{tx_hash}")
+async def get_transaction(tx_hash: str):
+    """Get transaction by hash"""
+    result = chain.get_transaction(tx_hash)
+    if not result:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return result
+
+# ------------ Mempool ------------
+
+@api_router.get("/mempool")
+async def get_mempool():
+    """Get mempool statistics"""
+    return {
+        "stats": chain.mempool.get_stats().to_dict(),
+        "quarantined": chain.mempool.get_quarantined()
+    }
+
+@api_router.get("/mempool/pending/{address}")
+async def get_pending_transactions(address: str):
+    """Get pending transactions for an address"""
+    pending = chain.mempool.get_pending_by_sender(address)
+    return {
+        "address": address,
+        "pending_count": len(pending),
+        "transactions": [tx.to_dict() for tx in pending]
+    }
+
+# ------------ AI Sentinel ------------
+
+@api_router.get("/sentinel")
+async def get_sentinel_status():
+    """Get AI Sentinel status"""
+    return chain.sentinel.to_dict()
+
+@api_router.get("/sentinel/stats")
+async def get_sentinel_stats():
+    """Get AI Sentinel statistics"""
+    return chain.sentinel.get_stats()
+
+@api_router.get("/sentinel/quarantine")
+async def get_quarantine():
+    """Get quarantined transactions"""
+    return {
+        "quarantined": [r.to_dict() for r in chain.sentinel.get_quarantined()]
+    }
+
+@api_router.post("/sentinel/mode")
+async def set_sentinel_mode(request: SentinelModeRequest):
+    """Set AI Sentinel guard mode"""
+    mode_map = {
+        "passive": GuardMode.PASSIVE,
+        "warning": GuardMode.WARNING,
+        "enforced": GuardMode.ENFORCED
+    }
+    mode = mode_map.get(request.mode)
+    if not mode:
+        raise HTTPException(status_code=400, detail="Invalid mode")
+    
+    chain.sentinel.set_guard_mode(mode)
+    return {"success": True, "mode": request.mode}
+
+# ------------ DEX ------------
+
+@api_router.get("/dex/markets")
+async def get_markets():
+    """Get available markets"""
+    markets = []
+    for market_name, orderbook in chain._orderbooks.items():
+        stats = orderbook.get_market_stats()
+        markets.append(stats)
+    return {"markets": markets}
+
+@api_router.get("/dex/orderbook/{market}")
+async def get_orderbook(market: str, depth: int = 20):
+    """Get orderbook for a market"""
+    orderbook = chain.get_orderbook(market, depth)
+    if not orderbook:
+        raise HTTPException(status_code=404, detail="Market not found")
+    return orderbook
+
+@api_router.post("/dex/order")
+async def place_order(request: OrderRequest):
+    """Place a DEX order"""
+    order, trades, message = chain.place_order(
+        trader=request.trader,
+        market=request.market,
+        side=request.side,
+        order_type=request.order_type,
+        price=request.price,
+        quantity=request.quantity
+    )
+    
+    if not order:
+        raise HTTPException(status_code=400, detail=message)
+    
+    # Broadcast trades
+    for trade in trades:
+        await manager.broadcast({
+            "type": "trade",
+            "data": trade.to_dict()
+        })
+    
+    return {
+        "order": order.to_dict(),
+        "trades": [t.to_dict() for t in trades],
+        "message": message
+    }
+
+@api_router.get("/dex/trades/{market}")
+async def get_trades(market: str, limit: int = 50):
+    """Get recent trades for a market"""
+    trades = chain.get_recent_trades(market, limit)
+    return {"trades": trades}
+
+@api_router.get("/dex/settlements")
+async def get_settlements():
+    """Get settlement statistics"""
+    return chain.settlement_engine.get_stats()
+
+@api_router.get("/dex/risk")
+async def get_risk_stats():
+    """Get risk engine statistics"""
+    return chain.risk_engine.get_stats()
+
+# ------------ WebSocket ------------
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    """WebSocket for real-time updates"""
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive and handle any incoming messages
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            # Handle subscription requests
+            if message.get("type") == "subscribe":
+                channel = message.get("channel")
+                await websocket.send_json({
+                    "type": "subscribed",
+                    "channel": channel
+                })
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+
+# Include router
+app.include_router(api_router)
+
+# Background task for auto block production
+async def auto_produce_blocks():
+    """Automatically produce blocks every 2 seconds"""
+    while True:
+        await asyncio.sleep(2)
+        try:
+            if chain.mempool.get_stats().total_pending > 0:
+                block = await chain.produce_block()
+                await manager.broadcast({
+                    "type": "new_block",
+                    "data": block.to_summary()
+                })
+        except Exception as e:
+            print(f"Block production error: {e}")
+
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks"""
+    asyncio.create_task(auto_produce_blocks())
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8001)
