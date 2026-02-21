@@ -129,9 +129,10 @@ impl NetworkService {
     /// Connect to peer
     pub async fn connect(&self, addr: SocketAddr) -> Result<PeerId, String> {
         // Generate peer ID (in production, would be from handshake)
-        let peer_id = PeerId::from_bytes(jaspr_types::HashValue::sha256(
+        let hash = jaspr_types::HashValue::sha256(
             format!("{}", addr).as_bytes()
-        ).as_bytes().try_into().unwrap());
+        );
+        let peer_id = PeerId::from_bytes(*hash.as_bytes());
         
         let mut info = PeerInfo::new(peer_id, addr, true);
         info.set_connected();
