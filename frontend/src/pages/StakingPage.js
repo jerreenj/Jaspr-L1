@@ -402,6 +402,55 @@ export default function StakingPage() {
               </div>
             </div>
           )}
+          
+          {/* Unbonding entries */}
+          {stakingInfo?.unbonding?.entries?.length > 0 && (
+            <div className="card rounded-sm mt-4 p-4" data-testid="unbonding-section">
+              <h4 className="font-unbounded text-sm font-semibold mb-3 flex items-center gap-2">
+                Unbonding
+                <span className="badge-warning text-xs">14 Day Period</span>
+              </h4>
+              <div className="space-y-2">
+                {stakingInfo.unbonding.entries.map((entry, idx) => {
+                  const validator = validators.find(v => v.address === entry.validator);
+                  return (
+                    <div key={idx} className="p-3 bg-zinc-900 rounded-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-mono text-xs text-zinc-400">
+                          {validator?.name || entry.validator.slice(0, 12)}...
+                        </span>
+                        <span className="font-mono text-sm text-yellow-500">
+                          {(entry.amount / 1_000_000_000).toFixed(4)} JASPR
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className={`font-mono ${entry.is_claimable ? 'text-green-500' : 'text-zinc-500'}`}>
+                          {entry.is_claimable ? 'Ready to claim' : `${entry.remaining_days.toFixed(1)} days remaining`}
+                        </span>
+                        {entry.is_claimable && (
+                          <button 
+                            className="px-2 py-1 bg-green-500 text-black rounded-sm font-mono text-xs"
+                            onClick={() => handleClaim()}
+                            data-testid="claim-btn"
+                          >
+                            CLAIM
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {stakingInfo.unbonding.total_unbonding > 0 && (
+                <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between">
+                  <span className="font-mono text-xs text-zinc-500">Total Unbonding</span>
+                  <span className="font-mono text-sm text-yellow-500">
+                    {(stakingInfo.unbonding.total_unbonding / 1_000_000_000).toFixed(4)} JASPR
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
