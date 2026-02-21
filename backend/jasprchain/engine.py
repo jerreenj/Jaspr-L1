@@ -2,10 +2,11 @@
 Ties together all modules into a working blockchain
 
 CORE L1 TESTNET - Foundation for applications to be built on top
+WITH PERSISTENCE (LMDB) - Blocks survive restart
 """
 import asyncio
 from typing import Dict, List, Optional, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import hashlib
 
 from .consensus import Block, BlockHeader, create_genesis_block, ValidatorSet, ProposerSelection, FinalityEngine
@@ -15,6 +16,7 @@ from .wallet import MPCWallet, AccountAbstraction
 from .sentinel import AISentinel, GuardMode
 from .network import Mempool
 from .crypto import generate_wallet, sha256_hex
+from .storage import get_persistence
 
 
 class JasprChain:
@@ -23,7 +25,7 @@ class JasprChain:
     Coordinates core modules:
     - Consensus (validators, proposer selection, finality)
     - Execution (parallel transaction processing)
-    - State (Sparse Merkle Tree)
+    - State (Sparse Merkle Tree) + LMDB Persistence
     - Wallet (MPC + Account Abstraction)
     - AI Sentinel (risk scoring)
     - Network (mempool)
@@ -45,6 +47,10 @@ class JasprChain:
     BLOCK_TIME_MS = 2000  # 2 second blocks
     TARGET_TPS = 10000
     
+    # Unbonding period (14 days in milliseconds)
+    UNBONDING_PERIOD_MS = 14 * 24 * 60 * 60 * 1000  # 14 days
+    UNBONDING_PERIOD_DAYS = 14
+    
     # $JASPR Tokenomics (from Litepaper)
     TOKEN_SYMBOL = "JASPR"
     TOTAL_SUPPLY = 1_000_000_000_000_000_000  # 1 billion with 9 decimals
@@ -59,6 +65,9 @@ class JasprChain:
     ECOSYSTEM_PARTNERSHIPS = 50_000_000_000_000_000 # 5%
     
     def __init__(self):
+        # Persistence layer
+        self.persistence = get_persistence()
+        
         # Core state
         self.state = StateStore()
         
