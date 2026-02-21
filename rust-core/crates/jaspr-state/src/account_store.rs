@@ -1,8 +1,8 @@
 //! Account state storage
 
 use crate::db::{Database, DbResult, CF_ACCOUNTS, CF_VALIDATORS};
-use jaspr_types::{Address, Account, AccountState, ValidatorInfo, Amount};
-use borsh::{BorshSerialize, BorshDeserialize};
+use jaspr_types::{Address, Account, ValidatorInfo, Amount};
+use borsh::BorshDeserialize;
 use std::collections::HashMap;
 use parking_lot::RwLock;
 

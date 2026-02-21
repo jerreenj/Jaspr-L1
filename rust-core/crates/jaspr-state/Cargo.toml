@@ -13,3 +13,4 @@ borsh = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 parking_lot = "0.12"
+rand = { workspace = true }
