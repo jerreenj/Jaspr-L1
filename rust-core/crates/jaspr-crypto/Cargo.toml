@@ -1,0 +1,15 @@
+[package]
+name = "jaspr-crypto"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jaspr-types = { path = "../jaspr-types" }
+ed25519-dalek = { workspace = true }
+sha2 = { workspace = true }
+sha3 = { workspace = true }
+blake3 = { workspace = true }
+rand = { workspace = true }
+hex = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
