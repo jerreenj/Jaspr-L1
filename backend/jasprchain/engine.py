@@ -335,6 +335,47 @@ class JasprChain:
                 stakes[validator] = stake
         return stakes
     
+    def calculate_validator_apy(self, validator_address: str) -> float:
+        """Calculate dynamic APY for a validator
+        
+        APY is based on:
+        - Base rate: 8% annual
+        - Validator performance bonus: up to 4% based on uptime and blocks proposed
+        - Stake distribution penalty: reduces APY if validator has >40% of total stake
+        - Commission deduction: validator's commission is deducted from rewards
+        """
+        validator = self.validator_set.get_validator(validator_address)
+        if not validator:
+            return 0.0
+        
+        # Base APY rate (8%)
+        base_apy = 8.0
+        
+        # Performance bonus (up to 4% additional)
+        uptime_bonus = (validator.stats.uptime_percentage / 100) * 2.0  # Max 2%
+        activity_bonus = min(validator.stats.blocks_proposed / 100, 2.0)  # Max 2%
+        performance_bonus = uptime_bonus + activity_bonus
+        
+        # Stake concentration penalty
+        total_stake = self.validator_set.total_stake()
+        if total_stake > 0:
+            stake_share = validator.stake / total_stake
+            if stake_share > 0.4:  # Penalize validators with >40% stake
+                concentration_penalty = (stake_share - 0.4) * 10  # Up to 6% penalty
+            else:
+                concentration_penalty = 0
+        else:
+            concentration_penalty = 0
+        
+        # Calculate gross APY
+        gross_apy = base_apy + performance_bonus - concentration_penalty
+        
+        # Deduct validator commission
+        commission_rate = validator.commission_rate / 10000  # Convert basis points
+        net_apy = gross_apy * (1 - commission_rate)
+        
+        return round(max(net_apy, 0), 2)
+    
     # Query methods
     def get_block(self, height_or_hash) -> Optional[Block]:
         """Get block by height or hash"""
