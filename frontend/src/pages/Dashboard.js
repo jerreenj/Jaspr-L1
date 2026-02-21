@@ -179,6 +179,30 @@ export default function Dashboard({ networkStats }) {
   const [blocks, setBlocks] = useState([]);
   const [validators, setValidators] = useState([]);
   const [sentinel, setSentinel] = useState(null);
+  const [liveHeight, setLiveHeight] = useState(0);
+  
+  // WebSocket for real-time updates
+  useEffect(() => {
+    const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://');
+    const ws = new WebSocket(`${wsUrl}/ws`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'new_block') {
+        setLiveHeight(data.data.height);
+        setBlocks(prev => {
+          const newBlocks = [data.data, ...prev.slice(0, 9)];
+          return newBlocks;
+        });
+      } else if (data.type === 'stats_update') {
+        setLiveHeight(data.data.height);
+      }
+    };
+    
+    ws.onerror = (e) => console.error('WebSocket error:', e);
+    
+    return () => ws.close();
+  }, []);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -191,13 +215,16 @@ export default function Dashboard({ networkStats }) {
         setBlocks(blocksRes.data.blocks || []);
         setValidators(validatorsRes.data.validators || []);
         setSentinel(sentinelRes.data);
+        if (blocksRes.data.blocks?.length > 0) {
+          setLiveHeight(blocksRes.data.blocks[0].height);
+        }
       } catch (e) {
         console.error("Dashboard fetch error:", e);
       }
     };
     
     fetchData();
-    const interval = setInterval(fetchData, 5000);
+    const interval = setInterval(fetchData, 3000);  // Refresh every 3 seconds
     return () => clearInterval(interval);
   }, []);
   
