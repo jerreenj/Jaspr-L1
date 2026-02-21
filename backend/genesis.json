@@ -1,0 +1,281 @@
+{
+  "chain_id": "jasprchain-testnet-1",
+  "chain_name": "JasprChain Testnet",
+  "genesis_time": "2025-01-01T00:00:00.000000000Z",
+  "initial_height": 1,
+  
+  "consensus_params": {
+    "block": {
+      "max_bytes": 22020096,
+      "max_gas": -1,
+      "time_iota_ms": 1000
+    },
+    "evidence": {
+      "max_age_num_blocks": 100000,
+      "max_age_duration": 172800000000000,
+      "max_bytes": 1048576
+    },
+    "validator": {
+      "pub_key_types": ["ed25519", "bls12381"]
+    },
+    "version": {}
+  },
+  
+  "app_state": {
+    "auth": {
+      "params": {
+        "max_memo_characters": 256,
+        "tx_sig_limit": 7,
+        "tx_size_cost_per_byte": 10,
+        "sig_verify_cost_ed25519": 590,
+        "sig_verify_cost_bls12381": 1000
+      },
+      "accounts": []
+    },
+    
+    "bank": {
+      "params": {
+        "send_enabled": [],
+        "default_send_enabled": true
+      },
+      "balances": [
+        {
+          "address": "jaspr1treasury_community",
+          "coins": [{"denom": "ujaspr", "amount": "520000000000000000"}]
+        },
+        {
+          "address": "jaspr1treasury_reserve",
+          "coins": [{"denom": "ujaspr", "amount": "150000000000000000"}]
+        },
+        {
+          "address": "jaspr1treasury_liquidity",
+          "coins": [{"denom": "ujaspr", "amount": "100000000000000000"}]
+        },
+        {
+          "address": "jaspr1treasury_team",
+          "coins": [{"denom": "ujaspr", "amount": "100000000000000000"}]
+        },
+        {
+          "address": "jaspr1treasury_investors",
+          "coins": [{"denom": "ujaspr", "amount": "80000000000000000"}]
+        },
+        {
+          "address": "jaspr1treasury_ecosystem",
+          "coins": [{"denom": "ujaspr", "amount": "50000000000000000"}]
+        }
+      ],
+      "supply": [{"denom": "ujaspr", "amount": "1000000000000000000"}],
+      "denom_metadata": [
+        {
+          "description": "Native token of JasprChain",
+          "denom_units": [
+            {"denom": "ujaspr", "exponent": 0, "aliases": ["microjaspr"]},
+            {"denom": "mjaspr", "exponent": 3, "aliases": ["millijaspr"]},
+            {"denom": "jaspr", "exponent": 9, "aliases": ["JASPR"]}
+          ],
+          "base": "ujaspr",
+          "display": "jaspr",
+          "name": "Jaspr",
+          "symbol": "JASPR"
+        }
+      ]
+    },
+    
+    "staking": {
+      "params": {
+        "unbonding_time": "1209600000000000",
+        "max_validators": 100,
+        "max_entries": 7,
+        "historical_entries": 10000,
+        "bond_denom": "ujaspr",
+        "min_commission_rate": "0.050000000000000000"
+      },
+      "validators": [
+        {
+          "operator_address": "jaspr1validator1",
+          "consensus_pubkey": {"@type": "/cosmos.crypto.ed25519.PubKey", "key": ""},
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "10000000000000",
+          "delegator_shares": "10000000000000.000000000000000000",
+          "description": {
+            "moniker": "Jaspr Labs",
+            "identity": "",
+            "website": "https://jaspr.io",
+            "security_contact": "",
+            "details": "Official Jaspr Labs validator"
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.050000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-01-01T00:00:00Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "jaspr1validator2",
+          "consensus_pubkey": {"@type": "/cosmos.crypto.ed25519.PubKey", "key": ""},
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "8000000000000",
+          "delegator_shares": "8000000000000.000000000000000000",
+          "description": {
+            "moniker": "Foundation",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": "Foundation validator"
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.050000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-01-01T00:00:00Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "jaspr1validator3",
+          "consensus_pubkey": {"@type": "/cosmos.crypto.ed25519.PubKey", "key": ""},
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "6000000000000",
+          "delegator_shares": "6000000000000.000000000000000000",
+          "description": {
+            "moniker": "Community",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": "Community validator"
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.050000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-01-01T00:00:00Z"
+          },
+          "min_self_delegation": "1"
+        },
+        {
+          "operator_address": "jaspr1validator4",
+          "consensus_pubkey": {"@type": "/cosmos.crypto.ed25519.PubKey", "key": ""},
+          "jailed": false,
+          "status": "BOND_STATUS_BONDED",
+          "tokens": "4000000000000",
+          "delegator_shares": "4000000000000.000000000000000000",
+          "description": {
+            "moniker": "Ecosystem",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": "Ecosystem validator"
+          },
+          "unbonding_height": "0",
+          "unbonding_time": "1970-01-01T00:00:00Z",
+          "commission": {
+            "commission_rates": {
+              "rate": "0.050000000000000000",
+              "max_rate": "0.200000000000000000",
+              "max_change_rate": "0.010000000000000000"
+            },
+            "update_time": "2025-01-01T00:00:00Z"
+          },
+          "min_self_delegation": "1"
+        }
+      ],
+      "delegations": [],
+      "unbonding_delegations": [],
+      "redelegations": [],
+      "exported": false
+    },
+    
+    "slashing": {
+      "params": {
+        "signed_blocks_window": "100",
+        "min_signed_per_window": "0.500000000000000000",
+        "downtime_jail_duration": "86400000000000",
+        "slash_fraction_double_sign": "0.050000000000000000",
+        "slash_fraction_downtime": "0.001000000000000000"
+      },
+      "signing_infos": [],
+      "missed_blocks": []
+    },
+    
+    "move": {
+      "params": {
+        "gas_unit_price": "100",
+        "max_gas_amount": "10000000",
+        "min_gas_amount": "1000"
+      },
+      "modules": [
+        {
+          "address": "0x1",
+          "name": "JASPR",
+          "bytecode": "",
+          "is_stdlib": true
+        },
+        {
+          "address": "0x1",
+          "name": "Coin",
+          "bytecode": "",
+          "is_stdlib": true
+        },
+        {
+          "address": "0x1",
+          "name": "Account",
+          "bytecode": "",
+          "is_stdlib": true
+        }
+      ]
+    },
+    
+    "sentinel": {
+      "params": {
+        "guard_mode": "ENFORCED",
+        "risk_threshold_warning": 50,
+        "risk_threshold_block": 80,
+        "ml_model_version": "1.0.0"
+      }
+    }
+  },
+  
+  "validators": [
+    {
+      "address": "jaspr1validator1",
+      "pub_key": {"type": "ed25519", "value": ""},
+      "power": "10000",
+      "name": "Jaspr Labs"
+    },
+    {
+      "address": "jaspr1validator2",
+      "pub_key": {"type": "ed25519", "value": ""},
+      "power": "8000",
+      "name": "Foundation"
+    },
+    {
+      "address": "jaspr1validator3",
+      "pub_key": {"type": "ed25519", "value": ""},
+      "power": "6000",
+      "name": "Community"
+    },
+    {
+      "address": "jaspr1validator4",
+      "pub_key": {"type": "ed25519", "value": ""},
+      "power": "4000",
+      "name": "Ecosystem"
+    }
+  ]
+}
