@@ -48,6 +48,7 @@ class Peer:
     chain_height: int = 0
     is_validator: bool = False
     reputation: int = 100  # 0-100, higher is better
+    is_simulated: bool = False  # Simulated peers skip cleanup
     
     @property
     def endpoint(self) -> str:
