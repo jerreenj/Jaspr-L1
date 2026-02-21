@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Use external URL for testing
-BASE_URL = "https://emerchain-protocol.preview.emergentagent.com/api"
+BASE_URL = "https://blockchain-proto.preview.emergentagent.com/api"
 
 class JasprChainTester:
     def __init__(self):
