@@ -105,7 +105,6 @@ impl JasprNode {
         Ok(Self {
             config,
             state: RwLock::new(NodeState::Starting),
-            database,
             block_store,
             account_store,
             state_tree,
