@@ -1,0 +1,16 @@
+[package]
+name = "jaspr-consensus"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+jaspr-types = { path = "../jaspr-types" }
+jaspr-crypto = { path = "../jaspr-crypto" }
+jaspr-state = { path = "../jaspr-state" }
+tokio = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+parking_lot = "0.12"
+rand = { workspace = true }
