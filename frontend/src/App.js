@@ -3,13 +3,14 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-do
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Blocks, Users, Wallet, Shield, Settings, 
-  Activity, Menu, X, Zap, TrendingUp, Clock, Database, Coins
+  Activity, Menu, X, Zap, TrendingUp, Clock, Database, Coins, History
 } from "lucide-react";
 import axios from "axios";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
 import BlockExplorer from "./pages/BlockExplorer";
+import HistoryPage from "./pages/HistoryPage";
 import Validators from "./pages/Validators";
 import WalletPage from "./pages/WalletPage";
 import StakingPage from "./pages/StakingPage";
@@ -25,6 +26,7 @@ const API = `${BACKEND_URL}/api`;
 const navItems = [
   { path: "/", icon: Activity, label: "Dashboard" },
   { path: "/blocks", icon: Blocks, label: "Blocks" },
+  { path: "/history", icon: History, label: "History" },
   { path: "/validators", icon: Users, label: "Validators" },
   { path: "/wallet", icon: Wallet, label: "Wallet" },
   { path: "/staking", icon: Coins, label: "Staking" },
