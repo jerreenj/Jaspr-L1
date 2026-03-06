@@ -316,7 +316,7 @@ async def get_recent_transactions(limit: int = 20):
                 "recipient": tx.get("recipient", ""),
                 "amount": tx.get("amount", 0),
                 "block_height": block.height,
-                "timestamp": block.timestamp,
+                "timestamp": block.header.timestamp,
                 "status": "confirmed"
             })
     
