@@ -694,8 +694,8 @@ async def simulate_staking_activity():
     """Simulate ACTIVE staking activity on the testnet
     
     - Random stakes/unstakes happen periodically
+    - Creates actual transactions that show in explorer
     - Shows real testnet activity
-    - Values change over time (not on refresh)
     """
     import random
     
@@ -714,8 +714,8 @@ async def simulate_staking_activity():
                 chain.persistence.save_state(f"balance:{addr}", initial_allocation)
     
     while True:
-        # Random interval: 10-30 seconds
-        wait_time = random.randint(10, 30)
+        # Random interval: 5-15 seconds for more activity
+        wait_time = random.randint(5, 15)
         await asyncio.sleep(wait_time)
         
         try:
@@ -731,41 +731,63 @@ async def simulate_staking_activity():
             # Random amount: 100-5000 JASPR
             amount = random.randint(100, 5000)
             
-            # Random action: 70% stake, 30% unstake
-            action = random.choices(['stake', 'unstake'], weights=[70, 30])[0]
+            # Random action: 60% stake, 20% unstake, 20% transfer
+            action = random.choices(['stake', 'unstake', 'transfer'], weights=[60, 20, 20])[0]
             
             if action == 'stake':
                 balance = chain.get_balance(delegator)
                 if balance >= amount:
-                    success, msg = chain.stake(delegator, validator.address, amount)
+                    # Create stake transaction
+                    from jasprchain.types import SignedTransaction, TransactionType
+                    tx = SignedTransaction(
+                        sender=delegator,
+                        recipient=validator.address,
+                        amount=amount,
+                        nonce=chain.state.get_account_nonce(delegator),
+                        tx_type=TransactionType.STAKE,
+                        signature="sim_stake_sig",
+                        public_key="sim_pub_key"
+                    )
+                    success, msg = await chain.submit_transaction(tx)
                     if success:
-                        print(f"[STAKE] {amount} JASPR from {delegator[:20]}... to {validator.name}")
-                        await manager.broadcast({
-                            "type": "staking_update",
-                            "data": {
-                                "action": "stake",
-                                "delegator": delegator[:16] + "...",
-                                "validator": validator.name,
-                                "amount": amount,
-                                "total_staked": chain.validator_set.total_stake()
-                            }
-                        })
-            else:
+                        print(f"[STAKE TX] {amount} JASPR from {delegator[:16]}... to {validator.name}")
+                        
+            elif action == 'unstake':
                 stake = chain.get_stake(delegator, validator.address)
                 if stake >= amount:
-                    success, msg = chain.unstake(delegator, validator.address, amount)
+                    from jasprchain.types import SignedTransaction, TransactionType
+                    tx = SignedTransaction(
+                        sender=delegator,
+                        recipient=validator.address,
+                        amount=amount,
+                        nonce=chain.state.get_account_nonce(delegator),
+                        tx_type=TransactionType.UNSTAKE,
+                        signature="sim_unstake_sig",
+                        public_key="sim_pub_key"
+                    )
+                    success, msg = await chain.submit_transaction(tx)
                     if success:
-                        print(f"[UNSTAKE] {amount} JASPR from {delegator[:20]}... from {validator.name}")
-                        await manager.broadcast({
-                            "type": "staking_update",
-                            "data": {
-                                "action": "unstake",
-                                "delegator": delegator[:16] + "...",
-                                "validator": validator.name,
-                                "amount": amount,
-                                "total_staked": chain.validator_set.total_stake()
-                            }
-                        })
+                        print(f"[UNSTAKE TX] {amount} JASPR from {delegator[:16]}... from {validator.name}")
+                        
+            else:  # transfer
+                recipient = random.choice(simulated_addresses[:20])
+                if recipient != delegator:
+                    balance = chain.get_balance(delegator)
+                    transfer_amount = random.randint(10, 500)
+                    if balance >= transfer_amount:
+                        from jasprchain.types import SignedTransaction, TransactionType
+                        tx = SignedTransaction(
+                            sender=delegator,
+                            recipient=recipient,
+                            amount=transfer_amount,
+                            nonce=chain.state.get_account_nonce(delegator),
+                            tx_type=TransactionType.TRANSFER,
+                            signature="sim_transfer_sig",
+                            public_key="sim_pub_key"
+                        )
+                        success, msg = await chain.submit_transaction(tx)
+                        if success:
+                            print(f"[TRANSFER TX] {transfer_amount} JASPR: {delegator[:12]}... -> {recipient[:12]}...")
             
         except Exception as e:
             print(f"Staking simulation error: {e}")
