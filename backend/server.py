@@ -794,7 +794,7 @@ async def simulate_staking_activity():
                         signature=b"sim_stake_sig",
                         public_key=b"sim_pub_key"
                     )
-                    success, msg = await chain.submit_transaction(signed_tx)
+                    success, msg, entry = await chain.submit_transaction(signed_tx)
                     if success:
                         print(f"[STAKE TX] {amount} JASPR from {delegator[:16]}... to {validator.name}")
                         
@@ -814,7 +814,7 @@ async def simulate_staking_activity():
                         signature=b"sim_unstake_sig",
                         public_key=b"sim_pub_key"
                     )
-                    success, msg = await chain.submit_transaction(signed_tx)
+                    success, msg, entry = await chain.submit_transaction(signed_tx)
                     if success:
                         print(f"[UNSTAKE TX] {amount} JASPR from {delegator[:16]}... from {validator.name}")
                         
@@ -837,7 +837,7 @@ async def simulate_staking_activity():
                             signature=b"sim_transfer_sig",
                             public_key=b"sim_pub_key"
                         )
-                        success, msg = await chain.submit_transaction(signed_tx)
+                        success, msg, entry = await chain.submit_transaction(signed_tx)
                         if success:
                             print(f"[TRANSFER TX] {transfer_amount} JASPR: {delegator[:12]}... -> {recipient[:12]}...")
             
