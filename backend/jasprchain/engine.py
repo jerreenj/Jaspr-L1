@@ -147,6 +147,14 @@ class JasprChain:
         # Load transaction count
         self._total_transactions = self.persistence.get_metadata('total_transactions', 0)
         
+        # Load wallets from persistence
+        saved_wallets = self.persistence.get_all_wallets()
+        for address, wallet_data in saved_wallets.items():
+            if 'private_key' in wallet_data:
+                # Restore full wallet with signing capability
+                wallet = MPCWallet.from_persisted(wallet_data)
+                self._wallets[address] = wallet
+        
         # Initialize validators (they are rebuilt on load)
         validators_config = [
             ("jaspr1validator1", 100_000, "Jaspr Labs"),
@@ -165,7 +173,7 @@ class JasprChain:
                 delegated = self.persistence.get_state(f"validator_delegated:{v_addr}", 0)
                 validator.stake = validator.stake + delegated
         
-        print(f"[CHAIN] Loaded {len(self.blocks)} blocks, {self._total_transactions} transactions")
+        print(f"[CHAIN] Loaded {len(self.blocks)} blocks, {self._total_transactions} transactions, {len(self._wallets)} wallets")
     
     def _initialize_fresh(self):
         """Initialize a fresh blockchain"""
