@@ -234,9 +234,10 @@ impl SparseMerkleTrie {
                     current_hash = if bit { right } else { left };
                 }
                 TrieNode::Extension { prefix, child } => {
-                    // Check if prefix matches
+                    // Check if prefix matches - convert prefix bytes to bits for comparison
                     let key_bits = self.key_to_bits(&key_hash);
-                    if key_bits[i..].starts_with(&prefix) {
+                    let prefix_bits: Vec<bool> = prefix.iter().flat_map(|&b| (0..8).map(move |i| (b >> (7 - i)) & 1 == 1)).take(prefix.len() * 8).collect();
+                    if i + prefix_bits.len() <= key_bits.len() && key_bits[i..i+prefix_bits.len()] == prefix_bits[..] {
                         current_hash = child;
                     } else {
                         return None;
