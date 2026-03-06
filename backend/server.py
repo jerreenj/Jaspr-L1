@@ -300,6 +300,49 @@ async def get_transaction(tx_hash: str):
         raise HTTPException(status_code=404, detail="Transaction not found")
     return result
 
+@api_router.get("/transactions/recent")
+async def get_recent_transactions(limit: int = 20):
+    """Get recent transactions from all blocks"""
+    transactions = []
+    
+    # Get transactions from recent blocks
+    for block in reversed(chain.blocks[-50:]):  # Last 50 blocks
+        for tx in block.transactions:
+            transactions.append({
+                "hash": tx.hash,
+                "type": tx.tx_type.value if hasattr(tx.tx_type, 'value') else str(tx.tx_type),
+                "sender": tx.sender,
+                "recipient": tx.recipient,
+                "amount": tx.amount,
+                "block_height": block.height,
+                "timestamp": block.timestamp,
+                "status": "confirmed"
+            })
+            if len(transactions) >= limit:
+                break
+        if len(transactions) >= limit:
+            break
+    
+    # Also add pending transactions
+    pending = chain.mempool.get_pending()
+    for tx in pending[:5]:
+        transactions.insert(0, {
+            "hash": tx.hash,
+            "type": tx.tx_type.value if hasattr(tx.tx_type, 'value') else str(tx.tx_type),
+            "sender": tx.sender,
+            "recipient": tx.recipient,
+            "amount": tx.amount,
+            "block_height": None,
+            "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+            "status": "pending"
+        })
+    
+    return {
+        "transactions": transactions[:limit],
+        "total": len(transactions)
+    }
+
+
 # ------------ Staking ------------
 
 @api_router.get("/staking/stats/overview")
