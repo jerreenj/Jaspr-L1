@@ -307,38 +307,28 @@ async def get_recent_transactions(limit: int = 20):
     
     # Get transactions from recent blocks
     for block in reversed(chain.blocks[-50:]):  # Last 50 blocks
-        for tx in block.transactions:
-            # tx is already a dict from to_dict()
-            if isinstance(tx, dict):
-                transactions.append({
-                    "hash": tx.get("hash", ""),
-                    "type": tx.get("type", "transfer"),
-                    "sender": tx.get("sender", ""),
-                    "recipient": tx.get("recipient", ""),
-                    "amount": tx.get("amount", 0),
-                    "block_height": block.height,
-                    "timestamp": block.timestamp,
-                    "status": "confirmed"
-                })
-            else:
-                transactions.append({
-                    "hash": tx.hash if hasattr(tx, 'hash') else str(tx),
-                    "type": tx.tx_type.value if hasattr(tx, 'tx_type') else "transfer",
-                    "sender": tx.sender if hasattr(tx, 'sender') else "",
-                    "recipient": tx.recipient if hasattr(tx, 'recipient') else "",
-                    "amount": tx.amount if hasattr(tx, 'amount') else 0,
-                    "block_height": block.height,
-                    "timestamp": block.timestamp,
-                    "status": "confirmed"
-                })
+        block_txs = block.transactions if hasattr(block, 'transactions') else []
+        for tx in block_txs:
+            # tx is a dict from to_dict()
+            transactions.append({
+                "hash": tx.get("hash", ""),
+                "type": tx.get("type", "transfer"),
+                "sender": tx.get("sender", ""),
+                "recipient": tx.get("recipient", ""),
+                "amount": tx.get("amount", 0),
+                "block_height": block.height,
+                "timestamp": block.timestamp,
+                "status": "confirmed"
+            })
             if len(transactions) >= limit:
                 break
         if len(transactions) >= limit:
             break
     
-    # Also add pending transactions
+    # Also add pending transactions from mempool
     pending = chain.mempool.get_pending()
-    for tx in pending[:5]:
+    for entry in pending[:5]:
+        tx = entry.transaction if hasattr(entry, 'transaction') else entry
         inner = tx.transaction if hasattr(tx, 'transaction') else tx
         transactions.insert(0, {
             "hash": tx.hash if hasattr(tx, 'hash') else "",
@@ -350,9 +340,6 @@ async def get_recent_transactions(limit: int = 20):
             "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
             "status": "pending"
         })
-    
-    if not transactions:
-        raise HTTPException(status_code=404, detail="Transaction not found")
     
     return {
         "transactions": transactions[:limit],
