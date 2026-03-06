@@ -405,7 +405,7 @@ export default function StakingPage() {
                         {validator?.name || validatorAddr.slice(0, 12)}...
                       </span>
                       <span className="font-mono text-sm text-white">
-                        {(amount / 1_000_000_000).toFixed(4)} JASPR
+                        {amount.toLocaleString()} JASPR
                       </span>
                     </div>
                   );
@@ -431,7 +431,7 @@ export default function StakingPage() {
                           {validator?.name || entry.validator.slice(0, 12)}...
                         </span>
                         <span className="font-mono text-sm text-yellow-500">
-                          {(entry.amount / 1_000_000_000).toFixed(4)} JASPR
+                          {entry.amount.toLocaleString()} JASPR
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
@@ -456,7 +456,7 @@ export default function StakingPage() {
                 <div className="mt-3 pt-3 border-t border-zinc-800 flex justify-between">
                   <span className="font-mono text-xs text-zinc-500">Total Unbonding</span>
                   <span className="font-mono text-sm text-yellow-500">
-                    {(stakingInfo.unbonding.total_unbonding / 1_000_000_000).toFixed(4)} JASPR
+                    {stakingInfo.unbonding.total_unbonding.toLocaleString()} JASPR
                   </span>
                 </div>
               )}
