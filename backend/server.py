@@ -305,8 +305,8 @@ async def get_recent_transactions(limit: int = 20):
     """Get recent transactions from all blocks"""
     transactions = []
     
-    # Get transactions from recent blocks
-    for block in reversed(chain.blocks[-50:]):  # Last 50 blocks
+    # Search ALL blocks (from newest to oldest) until we find enough transactions
+    for block in reversed(chain.blocks):
         block_txs = block.transactions if hasattr(block, 'transactions') else []
         for tx in block_txs:
             # tx is a dict from to_dict()
@@ -343,7 +343,7 @@ async def get_recent_transactions(limit: int = 20):
     
     return {
         "transactions": transactions[:limit],
-        "total": len(transactions)
+        "total": chain._total_transactions
     }
 
 
