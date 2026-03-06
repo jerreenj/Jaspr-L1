@@ -297,10 +297,8 @@ async def get_recent_transactions(limit: int = 20):
     """Get recent transactions from all blocks"""
     transactions = []
     
-    # Search last 500 blocks (from newest to oldest)
-    blocks_to_search = chain.blocks[-500:] if len(chain.blocks) > 500 else chain.blocks
-    
-    for block in reversed(blocks_to_search):
+    # Search ALL blocks (from newest to oldest) to get recent transactions
+    for block in reversed(chain.blocks):
         if len(transactions) >= limit:
             break
             
