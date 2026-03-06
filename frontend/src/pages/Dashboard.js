@@ -259,7 +259,6 @@ export default function Dashboard({ networkStats }) {
           subtitle={`${(networkStats?.tps || 0).toFixed(2)} TPS`}
           icon={Activity}
           color="purple"
-          trend={12}
         />
         <StatCard
           title="Validators"
