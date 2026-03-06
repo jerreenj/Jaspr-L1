@@ -205,3 +205,38 @@ class MPCWallet:
             'type': 'mpc_wallet',
             'threshold': f"{self.threshold}-of-{self.num_shares}"
         }
+    
+    def export_full(self) -> dict:
+        """Export full wallet data including private key (for persistence)"""
+        data = {
+            'address': self.address,
+            'threshold': self.threshold,
+            'num_shares': self.num_shares,
+            'type': 'mpc_wallet'
+        }
+        if self._underlying_keypair:
+            data['private_key'] = base64.b64encode(self._underlying_keypair.private_key).decode()
+            data['public_key'] = base64.b64encode(self._underlying_keypair.public_key).decode()
+        return data
+    
+    @classmethod
+    def from_persisted(cls, data: dict) -> 'MPCWallet':
+        """Restore wallet from persisted data"""
+        wallet = cls.__new__(cls)
+        wallet.address = data['address']
+        wallet.threshold = data.get('threshold', cls.DEFAULT_THRESHOLD)
+        wallet.num_shares = data.get('num_shares', cls.DEFAULT_SHARES)
+        wallet._shares = []
+        wallet._pending_requests = {}
+        
+        # Restore keypair if available
+        if 'private_key' in data and 'public_key' in data:
+            wallet._underlying_keypair = Ed25519KeyPair(
+                private_key=base64.b64decode(data['private_key']),
+                public_key=base64.b64decode(data['public_key']),
+                address=data['address']
+            )
+        else:
+            wallet._underlying_keypair = None
+        
+        return wallet
