@@ -10,7 +10,7 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-function StatCard({ title, value, subtitle, icon: Icon, trend, color = "cyan" }) {
+function StatCard({ title, value, subtitle, icon: Icon, color = "cyan" }) {
   const colorClasses = {
     cyan: "from-cyan-500/20 to-transparent border-cyan-500/30",
     purple: "from-purple-500/20 to-transparent border-purple-500/30",
@@ -37,13 +37,6 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, color = "cyan" })
           <Icon className={`w-4 h-4 md:w-6 md:h-6 text-${color}-500`} />
         </div>
       </div>
-      {trend && (
-        <div className={`flex items-center gap-1 mt-2 md:mt-4 text-xs md:text-sm ${trend > 0 ? "text-green-500" : "text-red-500"}`}>
-          {trend > 0 ? <ArrowUpRight className="w-3 h-3 md:w-4 md:h-4" /> : <ArrowDownRight className="w-3 h-3 md:w-4 md:h-4" />}
-          <span className="font-mono">{Math.abs(trend)}%</span>
-          <span className="text-zinc-500 text-[10px] md:text-xs hidden sm:inline">vs last hour</span>
-        </div>
-      )}
     </motion.div>
   );
 }
