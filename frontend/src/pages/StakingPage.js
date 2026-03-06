@@ -148,7 +148,7 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
       {currentStake > 0 && (
         <div className="p-3 bg-zinc-900 rounded-sm mb-4">
           <p className="font-mono text-xs text-zinc-500">YOUR CURRENT STAKE</p>
-          <p className="font-mono text-lg text-white">{(currentStake / 1_000_000_000).toFixed(4)} JASPR</p>
+          <p className="font-mono text-lg text-white">{currentStake.toLocaleString()} JASPR</p>
         </div>
       )}
       
