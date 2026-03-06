@@ -255,9 +255,8 @@ class Mempool:
             if entry.transaction.hash in used_hashes:
                 continue
             
-            # Skip quarantined unless we're desperate
-            if entry.lane == MempoolLane.QUARANTINE and len(selected) < max_count // 2:
-                continue
+            # In passive mode, include all transactions including quarantined
+            # (Quarantine is just advisory, not blocking)
             
             selected.append(entry.transaction)
             used_hashes.add(entry.transaction.hash)
