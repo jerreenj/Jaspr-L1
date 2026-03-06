@@ -845,51 +845,78 @@ async def startup_event():
     print("[STARTUP] Background tasks started: blocks, staking, slashing, contracts")
 
 async def simulate_slashing_detection():
-    """Monitor validator signatures - STABLE detection
-    
-    - Records signatures consistently (no random missed blocks)
-    - Only processes real evidence, no random slashing
-    """
+    """Monitor validator signatures and detect misbehavior"""
     import random
     
     while True:
-        # Check every 60 seconds (stable interval)
-        await asyncio.sleep(60)
+        # Check every 30-60 seconds
+        await asyncio.sleep(random.randint(30, 60))
         
         try:
             validators = chain.validator_set.get_active_validators()
             if not validators:
                 continue
             
-            # Record that all validators signed the block (100% uptime for stability)
+            # Simulate block signing - 95% sign, 5% miss
             for validator in validators:
                 if chain.blocks:
-                    chain.slashing.record_block_signature(
-                        validator.address, 
-                        chain.height, 
-                        chain.blocks[-1].hash
-                    )
+                    if random.random() < 0.95:
+                        chain.slashing.record_block_signature(
+                            validator.address, 
+                            chain.height, 
+                            chain.blocks[-1].hash
+                        )
+                    else:
+                        chain.slashing.record_missed_block(validator.address, chain.height)
+                        print(f"[MISS] {validator.name} missed block {chain.height}")
             
-            # Only process real evidence (none in simulation = no random slashing)
-            # This ensures stable validator stakes
+            # Process any slashing evidence
+            records = chain.slashing.process_pending_evidence(chain.validator_set)
+            for record in records:
+                print(f"[SLASH] {record.slash_type.value}: {validator.name} slashed {record.amount_slashed} JASPR")
+                await manager.broadcast({
+                    "type": "slashing_event",
+                    "data": record.to_dict()
+                })
                 
         except Exception as e:
             print(f"Slashing detection error: {e}")
 
 async def simulate_move_contract_activity():
-    """Simulate Move VM contract activity - STABLE background activity
-    
-    - Minimal activity to maintain chain operation
-    - No random fluctuations that affect UI
-    """
+    """Simulate Move VM contract activity"""
     import random
     
     while True:
-        # Only check every 60 seconds for stability
-        await asyncio.sleep(60)
+        # Every 20-45 seconds
+        await asyncio.sleep(random.randint(20, 45))
         
-        # Minimal simulation - just maintain chain state
-        # No random transfers that would change balances visibly
+        try:
+            sender = f"jaspr1move_{random.randint(1, 100):04d}"
+            recipient = f"jaspr1move_{random.randint(1, 100):04d}"
+            amount = random.randint(10, 500)
+            
+            result = chain.move_vm.execute_function(
+                sender=sender,
+                module_id="0x1::JASPR",
+                function_name="transfer",
+                type_args=[],
+                args=[recipient, amount]
+            )
+            
+            if result.success:
+                await manager.broadcast({
+                    "type": "move_event",
+                    "data": {
+                        "activity": "transfer",
+                        "from": sender[:16],
+                        "to": recipient[:16],
+                        "amount": amount,
+                        "gas_used": result.gas_used
+                    }
+                })
+                
+        except Exception as e:
+            pass  # Silently continue
 
 if __name__ == "__main__":
     import uvicorn
