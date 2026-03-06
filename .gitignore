@@ -79,3 +79,5 @@ yarn.lock
 # Environment files
 *.env
 *.env.*
+rust-core/target/debug/build/librocksdb-sys-301060f2d7a4dd1c/out/librocksdb.a
+rust-core/target/debug/deps/liblibrocksdb_sys-0b3a033249f2548c.rlib
