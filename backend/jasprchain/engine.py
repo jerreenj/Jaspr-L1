@@ -246,8 +246,8 @@ class JasprChain:
             self.state.set_account_balance(wallet.address, testnet_allocation)
             self.persistence.save_state(f"balance:{wallet.address}", testnet_allocation)
         
-        # Save wallet info to persistence
-        self.persistence.save_wallet(wallet.address, wallet.export_public_info())
+        # Save full wallet data (including private key for signing)
+        self.persistence.save_wallet(wallet.address, wallet.export_full())
         
         # Create AA wallet
         self.account_abstraction.get_or_create_wallet(wallet.address)
