@@ -232,6 +232,7 @@ function App() {
                   <Route path="/" element={<Dashboard networkStats={networkStats} />} />
                   <Route path="/blocks" element={<BlockExplorer />} />
                   <Route path="/blocks/:heightOrHash" element={<BlockExplorer />} />
+                  <Route path="/history" element={<HistoryPage />} />
                   <Route path="/validators" element={<Validators />} />
                   <Route path="/wallet" element={<WalletPage />} />
                   <Route path="/staking" element={<StakingPage />} />
