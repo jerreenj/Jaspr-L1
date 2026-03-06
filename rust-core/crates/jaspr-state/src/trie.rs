@@ -7,12 +7,11 @@
 //! - Batch operations
 
 use jaspr_types::{HashValue, Address, Amount};
-use std::collections::{HashMap, BTreeMap};
+use std::collections::HashMap;
 use std::sync::Arc;
 use parking_lot::RwLock;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use tracing::{info, warn, debug};
 
 /// State trie error
 #[derive(Error, Debug)]
