@@ -305,11 +305,18 @@ async def get_recent_transactions(limit: int = 20):
     """Get recent transactions from all blocks"""
     transactions = []
     
-    # Search ALL blocks (from newest to oldest) until we find enough transactions
-    for block in reversed(chain.blocks):
-        block_txs = block.transactions if hasattr(block, 'transactions') else []
+    # Search last 500 blocks (from newest to oldest)
+    blocks_to_search = chain.blocks[-500:] if len(chain.blocks) > 500 else chain.blocks
+    
+    for block in reversed(blocks_to_search):
+        if len(transactions) >= limit:
+            break
+            
+        block_txs = getattr(block, 'transactions', []) or []
         for tx in block_txs:
-            # tx is a dict from to_dict()
+            if len(transactions) >= limit:
+                break
+            # tx is a dict
             transactions.append({
                 "hash": tx.get("hash", ""),
                 "type": tx.get("type", "transfer"),
@@ -320,29 +327,9 @@ async def get_recent_transactions(limit: int = 20):
                 "timestamp": block.timestamp,
                 "status": "confirmed"
             })
-            if len(transactions) >= limit:
-                break
-        if len(transactions) >= limit:
-            break
-    
-    # Also add pending transactions from mempool
-    pending = chain.mempool.get_pending()
-    for entry in pending[:5]:
-        tx = entry.transaction if hasattr(entry, 'transaction') else entry
-        inner = tx.transaction if hasattr(tx, 'transaction') else tx
-        transactions.insert(0, {
-            "hash": tx.hash if hasattr(tx, 'hash') else "",
-            "type": inner.tx_type.value if hasattr(inner, 'tx_type') else "transfer",
-            "sender": inner.sender if hasattr(inner, 'sender') else "",
-            "recipient": inner.recipient if hasattr(inner, 'recipient') else "",
-            "amount": inner.amount if hasattr(inner, 'amount') else 0,
-            "block_height": None,
-            "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
-            "status": "pending"
-        })
     
     return {
-        "transactions": transactions[:limit],
+        "transactions": transactions,
         "total": chain._total_transactions
     }
 
