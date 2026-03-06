@@ -49,7 +49,18 @@ Location: `/app/rust-core/`
 - ✅ Rust codebase at 51.9% (exceeds 50% target)
 - ✅ Move VM crate fully implemented with verifier
 
+### Recent Updates (March 2026)
+1. ✅ **Fixed History Page** - `/api/transactions/recent` endpoint now correctly returns on-chain transactions
+   - Fixed `block.timestamp` → `block.header.timestamp` attribute access
+2. ✅ **Fixed Rust trie.rs** - Added missing `bincode` dependency and fixed type mismatch in Extension node comparison
+
+### Build Status
+- ✅ Python/JS Testnet fully functional
+- ✅ History page shows real transactions
+- ⏳ Rust tests pending (requires libclang + long RocksDB compilation)
+
 ### Upcoming Tasks (P0)
+- [ ] Full Rust test suite verification (`cargo test`)
 - [ ] Full Move VM integration with real bytecode execution
 - [ ] Real P2P networking tests
 - [ ] Genesis block generation from Rust node
