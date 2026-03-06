@@ -292,14 +292,6 @@ async def create_transfer(request: TransferRequest):
         "risk_score": entry.risk_score.to_dict() if entry and entry.risk_score else None
     }
 
-@api_router.get("/transactions/{tx_hash}")
-async def get_transaction(tx_hash: str):
-    """Get transaction by hash"""
-    result = chain.get_transaction(tx_hash)
-    if not result:
-        raise HTTPException(status_code=404, detail="Transaction not found")
-    return result
-
 @api_router.get("/transactions/recent")
 async def get_recent_transactions(limit: int = 20):
     """Get recent transactions from all blocks"""
@@ -332,6 +324,14 @@ async def get_recent_transactions(limit: int = 20):
         "transactions": transactions,
         "total": chain._total_transactions
     }
+
+@api_router.get("/transactions/{tx_hash}")
+async def get_transaction(tx_hash: str):
+    """Get transaction by hash"""
+    result = chain.get_transaction(tx_hash)
+    if not result:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return result
 
 
 # ------------ Staking ------------
