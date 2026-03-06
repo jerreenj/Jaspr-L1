@@ -321,7 +321,7 @@ export default function StakingPage() {
             </div>
             <div>
               <p className="font-mono text-xs text-zinc-500">TOTAL STAKED</p>
-              <p className="font-unbounded text-2xl font-bold">{(totalStake / 1_000_000_000_000).toFixed(0)}K JASPR</p>
+              <p className="font-unbounded text-2xl font-bold">{totalStake.toLocaleString()} JASPR</p>
             </div>
           </div>
         </div>
@@ -357,7 +357,7 @@ export default function StakingPage() {
             <div>
               <p className="font-mono text-xs text-zinc-500">YOUR STAKED</p>
               <p className="font-unbounded text-2xl font-bold">
-                {stakingInfo ? (stakingInfo.total_staked / 1_000_000_000).toFixed(2) : "0"} JASPR
+                {stakingInfo ? stakingInfo.total_staked.toLocaleString() : "0"} JASPR
               </p>
             </div>
           </div>
