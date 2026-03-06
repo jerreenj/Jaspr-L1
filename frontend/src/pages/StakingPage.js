@@ -37,7 +37,7 @@ function ValidatorCard({ validator, onSelect, isSelected, totalStake }) {
       <div className="grid grid-cols-4 gap-2 text-xs">
         <div>
           <p className="text-zinc-500">Stake</p>
-          <p className="font-mono text-white">{(validator.stake / 1_000_000_000_000).toFixed(1)}K</p>
+          <p className="font-mono text-white">{validator.stake.toLocaleString()}</p>
         </div>
         <div>
           <p className="text-zinc-500">Share</p>
@@ -77,7 +77,7 @@ function StakeForm({ selectedValidator, walletAddress, onStake, onUnstake, curre
     setResult(null);
     
     try {
-      const amountWei = Math.floor(parseFloat(amount) * 1_000_000_000);
+      const amountWei = Math.floor(parseFloat(amount));
       if (action === "stake") {
         await onStake(selectedValidator.address, amountWei);
         setResult({ success: true, message: `Staked ${amount} JASPR to ${selectedValidator.name}` });
