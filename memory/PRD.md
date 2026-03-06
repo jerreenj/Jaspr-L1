@@ -52,7 +52,13 @@ Location: `/app/rust-core/`
 ### Recent Updates (March 2026)
 1. ✅ **Fixed History Page** - `/api/transactions/recent` endpoint now correctly returns on-chain transactions
    - Fixed `block.timestamp` → `block.header.timestamp` attribute access
+   - Fixed search to look through ALL blocks, not just last 500
 2. ✅ **Fixed Rust trie.rs** - Added missing `bincode` dependency and fixed type mismatch in Extension node comparison
+3. ✅ **Added Wallet Persistence** - Wallets now survive backend restarts
+   - Full wallet data (including private keys) saved to LMDB
+   - Wallets automatically loaded on startup
+   - Users can now make real transactions from MVP that persist
+4. ✅ **Fixed Amount Decimal** - Frontend no longer multiplies by 1 billion (now 0 decimals: 1 JASPR = 1)
 
 ### Build Status
 - ✅ Python/JS Testnet fully functional
