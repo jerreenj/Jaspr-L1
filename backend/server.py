@@ -781,7 +781,7 @@ async def simulate_staking_activity():
                 balance = chain.get_balance(delegator)
                 if balance >= amount:
                     # Create stake transaction
-                    from jasprchain.types import SignedTransaction, TransactionType
+                    from jasprchain.execution.transaction import SignedTransaction, TransactionType
                     tx = SignedTransaction(
                         sender=delegator,
                         recipient=validator.address,
@@ -798,7 +798,7 @@ async def simulate_staking_activity():
             elif action == 'unstake':
                 stake = chain.get_stake(delegator, validator.address)
                 if stake >= amount:
-                    from jasprchain.types import SignedTransaction, TransactionType
+                    from jasprchain.execution.transaction import SignedTransaction, TransactionType
                     tx = SignedTransaction(
                         sender=delegator,
                         recipient=validator.address,
@@ -818,7 +818,7 @@ async def simulate_staking_activity():
                     balance = chain.get_balance(delegator)
                     transfer_amount = random.randint(10, 500)
                     if balance >= transfer_amount:
-                        from jasprchain.types import SignedTransaction, TransactionType
+                        from jasprchain.execution.transaction import SignedTransaction, TransactionType
                         tx = SignedTransaction(
                             sender=delegator,
                             recipient=recipient,
