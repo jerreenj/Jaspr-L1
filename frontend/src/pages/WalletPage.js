@@ -81,7 +81,7 @@ export default function WalletPage() {
       const response = await axios.post(`${API}/transactions/transfer`, {
         sender: selectedWallet.address,
         recipient: recipient,
-        amount: Math.floor(parseFloat(amount) * 1_000_000_000)
+        amount: Math.floor(parseFloat(amount))  // 0 decimals: 1 JASPR = 1
       });
       setTransferResult({ success: true, data: response.data });
       setRecipient("");
