@@ -777,22 +777,22 @@ async def startup_event():
     
     # Initialize additional validators (up to 20)
     additional_validators = [
-        ("jaspr1validator5", 3_500_000_000_000, "Alpha Node"),
-        ("jaspr1validator6", 3_200_000_000_000, "Beta Node"),
-        ("jaspr1validator7", 2_900_000_000_000, "Gamma Node"),
-        ("jaspr1validator8", 2_600_000_000_000, "Delta Node"),
-        ("jaspr1validator9", 2_300_000_000_000, "Epsilon Node"),
-        ("jaspr1validator10", 2_100_000_000_000, "Zeta Node"),
-        ("jaspr1validator11", 1_900_000_000_000, "Eta Node"),
-        ("jaspr1validator12", 1_700_000_000_000, "Theta Node"),
-        ("jaspr1validator13", 1_500_000_000_000, "Iota Node"),
-        ("jaspr1validator14", 1_400_000_000_000, "Kappa Node"),
-        ("jaspr1validator15", 1_300_000_000_000, "Lambda Node"),
-        ("jaspr1validator16", 1_200_000_000_000, "Mu Node"),
-        ("jaspr1validator17", 1_100_000_000_000, "Nu Node"),
-        ("jaspr1validator18", 1_050_000_000_000, "Xi Node"),
-        ("jaspr1validator19", 1_000_000, "Omicron Node"),
-        ("jaspr1validator20", 950_000_000_000, "Pi Node"),
+        ("jaspr1validator5", 35_000, "Alpha Node"),
+        ("jaspr1validator6", 32_000, "Beta Node"),
+        ("jaspr1validator7", 29_000, "Gamma Node"),
+        ("jaspr1validator8", 26_000, "Delta Node"),
+        ("jaspr1validator9", 23_000, "Epsilon Node"),
+        ("jaspr1validator10", 21_000, "Zeta Node"),
+        ("jaspr1validator11", 19_000, "Eta Node"),
+        ("jaspr1validator12", 17_000, "Theta Node"),
+        ("jaspr1validator13", 15_000, "Iota Node"),
+        ("jaspr1validator14", 14_000, "Kappa Node"),
+        ("jaspr1validator15", 13_000, "Lambda Node"),
+        ("jaspr1validator16", 12_000, "Mu Node"),
+        ("jaspr1validator17", 11_000, "Nu Node"),
+        ("jaspr1validator18", 10_500, "Xi Node"),
+        ("jaspr1validator19", 10_000, "Omicron Node"),
+        ("jaspr1validator20", 9_500, "Pi Node"),
     ]
     
     for addr, stake, name in additional_validators:
