@@ -33,6 +33,7 @@ export default function HistoryPage() {
     if (filter === "all") return true;
     if (filter === "buy") return tx.trade_type === "buy";
     if (filter === "sell") return tx.trade_type === "sell";
+    if (filter === "swap") return tx.trade_type === "swap";
     return tx.type === filter;
   });
 
