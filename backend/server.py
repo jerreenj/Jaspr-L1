@@ -260,6 +260,18 @@ async def get_balance(address: str):
         "balance_formatted": f"{balance} JASPR"
     }
 
+@api_router.get("/wallets")
+async def list_wallets():
+    """List all wallets with balances"""
+    wallets = []
+    for address in chain._wallets.keys():
+        balance = chain.get_balance(address)
+        wallets.append({
+            "address": address,
+            "balance": balance
+        })
+    return {"wallets": wallets}
+
 # ------------ Transactions ------------
 
 @api_router.post("/transactions/transfer")
