@@ -315,10 +315,15 @@ async def create_transfer(request: TransferRequest):
 
 @api_router.post("/transactions/trade")
 async def create_trade(request: TradeRequest):
-    """Create a TRADE transaction on-chain (BUY/SELL/SWAP from MVP)"""
+    """Create a TRADE transaction on-chain (BUY/SELL/SWAP from MVP)
+    
+    Auto-creates wallet if sender doesn't exist (for MVP integration)
+    """
     wallet = chain.get_wallet(request.sender)
+    
+    # Auto-create wallet for MVP users if it doesn't exist
     if not wallet:
-        raise HTTPException(status_code=404, detail="Sender wallet not found")
+        wallet = chain.create_wallet_for_address(request.sender)
     
     # Build metadata for trade
     metadata = {
