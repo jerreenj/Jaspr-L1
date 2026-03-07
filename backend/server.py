@@ -394,7 +394,9 @@ async def get_recent_transactions(limit: int = 20):
                 "timestamp": block.header.timestamp,
                 "status": "confirmed",
                 "trade_type": metadata.get("trade_type"),
-                "symbol": metadata.get("symbol")
+                "symbol": metadata.get("symbol"),
+                "from_symbol": metadata.get("from_symbol"),
+                "to_symbol": metadata.get("to_symbol")
             })
     
     return {
