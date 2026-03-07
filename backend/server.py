@@ -315,10 +315,21 @@ async def create_transfer(request: TransferRequest):
 
 @api_router.post("/transactions/trade")
 async def create_trade(request: TradeRequest):
-    """Create a TRADE transaction on-chain (BUY/SELL positions)"""
+    """Create a TRADE transaction on-chain (BUY/SELL/SWAP from MVP)"""
     wallet = chain.get_wallet(request.sender)
     if not wallet:
         raise HTTPException(status_code=404, detail="Sender wallet not found")
+    
+    # Build metadata for trade
+    metadata = {
+        "trade_type": request.trade_type,
+        "symbol": request.symbol,
+    }
+    # Add swap-specific fields if present
+    if request.from_symbol:
+        metadata["from_symbol"] = request.from_symbol
+    if request.to_symbol:
+        metadata["to_symbol"] = request.to_symbol
     
     # Create transaction with trade metadata
     tx = chain.create_transaction(
@@ -326,10 +337,7 @@ async def create_trade(request: TradeRequest):
         recipient=request.recipient,
         amount=request.amount,
         tx_type=TransactionType.TRANSFER,
-        metadata={
-            "trade_type": request.trade_type,
-            "symbol": request.symbol
-        }
+        metadata=metadata
     )
     
     # Sign transaction
