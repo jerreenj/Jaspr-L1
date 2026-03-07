@@ -11,7 +11,6 @@ import axios from "axios";
 import Dashboard from "./pages/Dashboard";
 import BlockExplorer from "./pages/BlockExplorer";
 import HistoryPage from "./pages/HistoryPage";
-import TradePage from "./pages/TradePage";
 import Validators from "./pages/Validators";
 import WalletPage from "./pages/WalletPage";
 import StakingPage from "./pages/StakingPage";
@@ -26,7 +25,6 @@ const API = `${BACKEND_URL}/api`;
 // Navigation items - CORE L1 ONLY
 const navItems = [
   { path: "/", icon: Activity, label: "Dashboard" },
-  { path: "/trade", icon: TrendingUp, label: "Trade" },
   { path: "/blocks", icon: Blocks, label: "Blocks" },
   { path: "/history", icon: History, label: "History" },
   { path: "/validators", icon: Users, label: "Validators" },
@@ -232,7 +230,6 @@ function App() {
               <AnimatePresence mode="wait">
                 <Routes>
                   <Route path="/" element={<Dashboard networkStats={networkStats} />} />
-                  <Route path="/trade" element={<TradePage />} />
                   <Route path="/blocks" element={<BlockExplorer />} />
                   <Route path="/blocks/:heightOrHash" element={<BlockExplorer />} />
                   <Route path="/history" element={<HistoryPage />} />
