@@ -299,6 +299,53 @@ async def create_transfer(request: TransferRequest):
         "risk_score": entry.risk_score.to_dict() if entry and entry.risk_score else None
     }
 
+@api_router.post("/transactions/trade")
+async def create_trade(request: TradeRequest):
+    """Create a TRADE transaction on-chain (BUY/SELL positions)"""
+    wallet = chain.get_wallet(request.sender)
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Sender wallet not found")
+    
+    # Create transaction with trade metadata
+    tx = chain.create_transaction(
+        sender=request.sender,
+        recipient=request.recipient,
+        amount=request.amount,
+        tx_type=TransactionType.TRANSFER,
+        metadata={
+            "trade_type": request.trade_type,
+            "symbol": request.symbol
+        }
+    )
+    
+    # Sign transaction
+    signed_tx = chain.sign_transaction(tx, wallet)
+    
+    # Submit to mempool
+    success, message, entry = await chain.submit_transaction(signed_tx)
+    
+    if not success:
+        raise HTTPException(status_code=400, detail=message)
+    
+    # Broadcast to websocket
+    await manager.broadcast({
+        "type": "new_trade",
+        "data": {
+            **signed_tx.to_dict(),
+            "trade_type": request.trade_type,
+            "symbol": request.symbol
+        }
+    })
+    
+    return {
+        "success": True,
+        "tx_hash": signed_tx.hash,
+        "trade_type": request.trade_type,
+        "symbol": request.symbol,
+        "amount": request.amount,
+        "status": "pending"
+    }
+
 @api_router.get("/transactions/recent")
 async def get_recent_transactions(limit: int = 20):
     """Get recent transactions from all blocks"""
