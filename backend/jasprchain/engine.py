@@ -257,6 +257,28 @@ class JasprChain:
     def get_wallet(self, address: str) -> Optional[MPCWallet]:
         return self._wallets.get(address)
     
+    def create_wallet_for_address(self, address: str) -> MPCWallet:
+        """Create a wallet for a specific address (for MVP integration)
+        
+        This allows external MVP apps to register their wallets on JasprChain
+        """
+        # Create wallet with the specified address
+        wallet = MPCWallet()
+        # Override the generated address with the MVP's address
+        wallet.address = address
+        self._wallets[address] = wallet
+        
+        # Give the wallet some initial balance for transactions
+        initial_balance = 100_000  # 100k JASPR for MVP users
+        self.state.set_account_balance(address, initial_balance)
+        self.persistence.save_state(f"balance:{address}", initial_balance)
+        
+        # Save wallet
+        self.persistence.save_wallet(address, wallet.export_full())
+        
+        print(f"[MVP] Auto-created wallet for {address[:20]}...")
+        return wallet
+    
     def get_balance(self, address: str) -> int:
         return self.state.get_account_balance(address)
     
