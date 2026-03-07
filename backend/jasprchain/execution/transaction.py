@@ -55,6 +55,9 @@ class Transaction:
     # Chain ID (prevents cross-chain replay)
     chain_id: int = 1  # JasprChain mainnet
     
+    # Trade metadata (for BUY/SELL trades)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
     def hash(self) -> str:
         """Calculate transaction hash"""
         data = json.dumps({
@@ -69,7 +72,8 @@ class Transaction:
             'gas_price': self.gas_price,
             'nonce': self.nonce,
             'timestamp': self.timestamp,
-            'chain_id': self.chain_id
+            'chain_id': self.chain_id,
+            'metadata': self.metadata
         }, sort_keys=True).encode()
         return hashlib.sha256(data).hexdigest()
     
