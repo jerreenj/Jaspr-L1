@@ -95,7 +95,8 @@ class Transaction:
             'gas_price': self.gas_price,
             'nonce': self.nonce,
             'timestamp': self.timestamp,
-            'chain_id': self.chain_id
+            'chain_id': self.chain_id,
+            'metadata': self.metadata
         }
 
 
