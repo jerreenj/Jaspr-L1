@@ -360,7 +360,8 @@ async def get_recent_transactions(limit: int = 20):
         for tx in block_txs:
             if len(transactions) >= limit:
                 break
-            # tx is a dict
+            # tx is a dict - include trade metadata if present
+            metadata = tx.get("metadata", {})
             transactions.append({
                 "hash": tx.get("hash", ""),
                 "type": tx.get("type", "transfer"),
@@ -369,7 +370,9 @@ async def get_recent_transactions(limit: int = 20):
                 "amount": tx.get("amount", 0),
                 "block_height": block.height,
                 "timestamp": block.header.timestamp,
-                "status": "confirmed"
+                "status": "confirmed",
+                "trade_type": metadata.get("trade_type"),
+                "symbol": metadata.get("symbol")
             })
     
     return {
