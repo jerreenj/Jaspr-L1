@@ -101,7 +101,7 @@ export default function HistoryPage() {
         
         {/* Filter */}
         <div className="flex gap-2 flex-wrap">
-          {["all", "buy", "sell", "transfer", "stake"].map((f) => (
+          {["all", "buy", "sell", "swap", "transfer", "stake"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
@@ -109,6 +109,7 @@ export default function HistoryPage() {
                 filter === f
                   ? f === "buy" ? "bg-green-500 text-black" :
                     f === "sell" ? "bg-red-500 text-white" :
+                    f === "swap" ? "bg-cyan-500 text-black" :
                     "bg-[#00FFA3] text-black"
                   : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
               }`}
