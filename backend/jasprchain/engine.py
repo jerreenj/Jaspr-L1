@@ -265,12 +265,13 @@ class JasprChain:
         sender: str,
         recipient: str,
         amount: int,
-        tx_type: TransactionType = TransactionType.TRANSFER
+        tx_type: TransactionType = TransactionType.TRANSFER,
+        metadata: dict = None
     ) -> Transaction:
         """Create a new transaction"""
         nonce = self.state.get_account_nonce(sender)
         
-        return Transaction(
+        tx = Transaction(
             tx_type=tx_type,
             sender=sender,
             recipient=recipient,
@@ -278,6 +279,10 @@ class JasprChain:
             nonce=nonce,
             chain_id=self.CHAIN_ID
         )
+        # Attach trade metadata if provided
+        if metadata:
+            tx.metadata = metadata
+        return tx
     
     def sign_transaction(self, tx: Transaction, wallet: MPCWallet) -> SignedTransaction:
         """Sign a transaction with MPC wallet"""
