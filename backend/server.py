@@ -51,8 +51,10 @@ class TradeRequest(BaseModel):
     sender: str
     recipient: str
     amount: int
-    trade_type: str  # 'buy' or 'sell'
-    symbol: str  # 'BTC', 'ETH', 'BNB', etc
+    trade_type: Optional[str] = None  # 'buy', 'sell', 'swap'
+    symbol: Optional[str] = None  # 'BTC', 'ETH', 'BNB', etc
+    from_symbol: Optional[str] = None  # For swaps
+    to_symbol: Optional[str] = None  # For swaps
 
 class StakeRequest(BaseModel):
     delegator: str
