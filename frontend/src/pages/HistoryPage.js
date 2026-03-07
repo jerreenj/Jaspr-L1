@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { TrendingUp, TrendingDown } from "lucide-react";
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function HistoryPage() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, transfer, stake, unstake
+  const [filter, setFilter] = useState("all"); // all, transfer, stake, unstake, buy, sell
 
   useEffect(() => {
     fetchTransactions();
@@ -30,6 +31,8 @@ export default function HistoryPage() {
 
   const filteredTxs = transactions.filter(tx => {
     if (filter === "all") return true;
+    if (filter === "buy") return tx.trade_type === "buy";
+    if (filter === "sell") return tx.trade_type === "sell";
     return tx.type === filter;
   });
 
@@ -41,6 +44,31 @@ export default function HistoryPage() {
   const formatAddress = (addr) => {
     if (!addr) return "-";
     return `${addr.slice(0, 10)}...${addr.slice(-6)}`;
+  };
+
+  // Get display type and styling for transaction
+  const getTxDisplay = (tx) => {
+    if (tx.trade_type && tx.symbol) {
+      // It's a trade!
+      const isBuy = tx.trade_type === "buy";
+      return {
+        label: `${isBuy ? "BUY" : "SELL"} ${tx.symbol}`,
+        bgClass: isBuy ? "bg-green-500/20" : "bg-red-500/20",
+        textClass: isBuy ? "text-green-400" : "text-red-400",
+        icon: isBuy ? TrendingUp : TrendingDown,
+        isTrade: true
+      };
+    }
+    // Regular transfer/stake
+    return {
+      label: tx.type || "transfer",
+      bgClass: tx.type === "stake" ? "bg-purple-500/20" : 
+               tx.type === "unstake" ? "bg-yellow-500/20" : "bg-blue-500/20",
+      textClass: tx.type === "stake" ? "text-purple-400" : 
+                 tx.type === "unstake" ? "text-yellow-400" : "text-blue-400",
+      icon: null,
+      isTrade: false
+    };
   };
 
   return (
@@ -61,16 +89,19 @@ export default function HistoryPage() {
         </div>
         
         {/* Filter */}
-        <div className="flex gap-2">
-          {["all", "transfer", "stake", "unstake"].map((f) => (
+        <div className="flex gap-2 flex-wrap">
+          {["all", "buy", "sell", "transfer", "stake"].map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`px-3 py-1 text-xs font-mono rounded ${
                 filter === f
-                  ? "bg-[#00FFA3] text-black"
+                  ? f === "buy" ? "bg-green-500 text-black" :
+                    f === "sell" ? "bg-red-500 text-white" :
+                    "bg-[#00FFA3] text-black"
                   : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
               }`}
+              data-testid={`filter-${f}`}
             >
               {f.toUpperCase()}
             </button>
@@ -88,7 +119,7 @@ export default function HistoryPage() {
           <div className="p-8 text-center">
             <p className="text-zinc-500 mb-2">No transactions yet</p>
             <p className="text-zinc-600 text-sm">
-              Submit a transfer or stake to see transactions here
+              Make a trade or transfer to see transactions here
             </p>
           </div>
         ) : (
@@ -106,50 +137,52 @@ export default function HistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredTxs.map((tx, i) => (
-                <tr 
-                  key={tx.hash || i} 
-                  className="border-t border-zinc-800 hover:bg-zinc-800/30"
-                >
-                  <td className="p-4 font-mono text-xs text-[#00FFA3]">
-                    {tx.hash ? `${tx.hash.slice(0, 12)}...` : "-"}
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      tx.type === "transfer" ? "bg-blue-500/20 text-blue-400" :
-                      tx.type === "stake" ? "bg-green-500/20 text-green-400" :
-                      tx.type === "unstake" ? "bg-yellow-500/20 text-yellow-400" :
-                      "bg-zinc-700 text-zinc-400"
-                    }`}>
-                      {tx.type || "unknown"}
-                    </span>
-                  </td>
-                  <td className="p-4 font-mono text-xs text-zinc-400">
-                    {formatAddress(tx.sender)}
-                  </td>
-                  <td className="p-4 font-mono text-xs text-zinc-400">
-                    {formatAddress(tx.recipient)}
-                  </td>
-                  <td className="p-4 font-mono text-sm text-white">
-                    {tx.amount?.toLocaleString() || 0} JASPR
-                  </td>
-                  <td className="p-4 font-mono text-xs text-zinc-500">
-                    {tx.block_height || "pending"}
-                  </td>
-                  <td className="p-4">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      tx.status === "confirmed" 
-                        ? "bg-green-500/20 text-green-400" 
-                        : "bg-yellow-500/20 text-yellow-400"
-                    }`}>
-                      {tx.status}
-                    </span>
-                  </td>
-                  <td className="p-4 text-xs text-zinc-500">
-                    {formatTime(tx.timestamp)}
-                  </td>
-                </tr>
-              ))}
+              {filteredTxs.map((tx, i) => {
+                const display = getTxDisplay(tx);
+                const Icon = display.icon;
+                
+                return (
+                  <tr 
+                    key={tx.hash || i} 
+                    className="border-t border-zinc-800 hover:bg-zinc-800/30"
+                    data-testid={`tx-row-${i}`}
+                  >
+                    <td className="p-4 font-mono text-xs text-[#00FFA3]">
+                      {tx.hash ? `${tx.hash.slice(0, 12)}...` : "-"}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 text-xs rounded flex items-center gap-1 w-fit ${display.bgClass} ${display.textClass}`}>
+                        {Icon && <Icon className="w-3 h-3" />}
+                        {display.label}
+                      </span>
+                    </td>
+                    <td className="p-4 font-mono text-xs text-zinc-400">
+                      {formatAddress(tx.sender)}
+                    </td>
+                    <td className="p-4 font-mono text-xs text-zinc-400">
+                      {formatAddress(tx.recipient)}
+                    </td>
+                    <td className="p-4 font-mono text-sm text-white">
+                      {display.isTrade ? "$" : ""}{tx.amount?.toLocaleString() || 0}{display.isTrade ? "" : " JASPR"}
+                    </td>
+                    <td className="p-4 font-mono text-xs text-zinc-500">
+                      {tx.block_height || "pending"}
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2 py-1 text-xs rounded ${
+                        tx.status === "confirmed" 
+                          ? "bg-green-500/20 text-green-400" 
+                          : "bg-yellow-500/20 text-yellow-400"
+                      }`}>
+                        {tx.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-xs text-zinc-500">
+                      {formatTime(tx.timestamp)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
