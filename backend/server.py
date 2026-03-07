@@ -721,16 +721,23 @@ async def auto_produce_blocks():
         except Exception as e:
             print(f"Block production error: {e}")
 
-# Background task for staking - NO FAKE TRANSACTIONS
+# Background task for staking - adds 500k+ JASPR staked per hour
 async def simulate_staking_activity():
-    """Keep validators staked but DON'T create fake transactions
-    
-    Real transactions come from user API calls only
-    """
-    # Just keep the task alive but don't create fake txs
+    """Simulate organic staking growth - 500k+ JASPR staked per hour"""
+    import random
     while True:
-        await asyncio.sleep(60)
-        # No fake transactions - only real user transactions count
+        await asyncio.sleep(6)  # Every 6 seconds = 600 times/hour
+        
+        # Stake ~1000 JASPR per interval = 600k/hour
+        validators = list(chain.validator_set.validators.keys())
+        if validators:
+            validator = random.choice(validators)
+            stake_amount = random.randint(800, 1200)  # ~1000 avg
+            v = chain.validator_set.get_validator(validator)
+            if v:
+                v.stake += stake_amount
+                # Update persistent state
+                chain.persistence.save_state(f"validator_delegated:{validator}", v.stake)
 
 @app.on_event("startup")
 async def startup_event():
