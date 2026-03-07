@@ -47,6 +47,13 @@ class TransferRequest(BaseModel):
     recipient: str
     amount: int
 
+class TradeRequest(BaseModel):
+    sender: str
+    recipient: str
+    amount: int
+    trade_type: str  # 'buy' or 'sell'
+    symbol: str  # 'BTC', 'ETH', 'BNB', etc
+
 class StakeRequest(BaseModel):
     delegator: str
     validator: str
