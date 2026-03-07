@@ -48,8 +48,18 @@ export default function HistoryPage() {
 
   // Get display type and styling for transaction
   const getTxDisplay = (tx) => {
+    if (tx.trade_type === "swap" && tx.from_symbol && tx.to_symbol) {
+      // It's a swap!
+      return {
+        label: `SWAP ${tx.from_symbol}→${tx.to_symbol}`,
+        bgClass: "bg-cyan-500/20",
+        textClass: "text-cyan-400",
+        icon: null,
+        isTrade: true
+      };
+    }
     if (tx.trade_type && tx.symbol) {
-      // It's a trade!
+      // It's a buy/sell trade
       const isBuy = tx.trade_type === "buy";
       return {
         label: `${isBuy ? "BUY" : "SELL"} ${tx.symbol}`,
