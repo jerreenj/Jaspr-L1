@@ -232,6 +232,7 @@ function App() {
               <AnimatePresence mode="wait">
                 <Routes>
                   <Route path="/" element={<Dashboard networkStats={networkStats} />} />
+                  <Route path="/trade" element={<TradePage />} />
                   <Route path="/blocks" element={<BlockExplorer />} />
                   <Route path="/blocks/:heightOrHash" element={<BlockExplorer />} />
                   <Route path="/history" element={<HistoryPage />} />
