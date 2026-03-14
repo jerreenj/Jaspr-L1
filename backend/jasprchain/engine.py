@@ -144,14 +144,20 @@ class JasprChain:
             value = self.persistence.get_state(key)
             self.state.set(key, value)
         
-        # Count actual transactions from blocks (not from saved metadata - prevents data loss)
+        # Count actual transactions from blocks (BULLETPROOF - prevents data loss)
         actual_tx_count = 0
         for block in self.blocks:
             txs = getattr(block, 'transactions', []) or []
             actual_tx_count += len(txs)
-        self._total_transactions = actual_tx_count
+        
+        # NEVER allow count to decrease
+        saved_count = self.persistence.get_metadata('total_transactions', 0)
+        self._total_transactions = max(actual_tx_count, saved_count)
+        
         # Update metadata to match actual count
         self.persistence.save_metadata('total_transactions', self._total_transactions)
+        
+        print(f"[CHAIN] Verified {self._total_transactions} transactions (actual: {actual_tx_count}, saved: {saved_count})")
         
         # Load wallets from persistence
         saved_wallets = self.persistence.get_all_wallets()
