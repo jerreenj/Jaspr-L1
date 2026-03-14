@@ -406,13 +406,19 @@ class JasprChain:
         self.blocks.append(block)
         self._blocks_by_hash[block.hash] = block
         
-        # PERSIST BLOCK
+        # PERSIST BLOCK IMMEDIATELY - BULLETPROOF
         self.persistence.save_block(block.height, block.hash, block.to_dict())
         self.persistence.set_latest_height(block.height)
         
-        # Update stats
+        # Update transaction count - ALWAYS from actual data
         self._total_transactions += len(pending_txs)
         self.persistence.save_metadata('total_transactions', self._total_transactions)
+        
+        # BACKUP: Save each transaction hash for verification
+        for tx in pending_txs:
+            self.persistence.save_state(f"tx_backup:{tx.hash}", block.height)
+        
+        print(f"[BLOCK] #{block.height} with {len(pending_txs)} txs | Total: {self._total_transactions}")
         
         # Update validator stats
         proposer.stats.blocks_proposed += 1
