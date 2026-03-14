@@ -19,7 +19,7 @@ from .wallet import MPCWallet, AccountAbstraction
 from .sentinel import AISentinel, GuardMode
 from .network import Mempool, P2PNetwork
 from .crypto import generate_wallet, sha256_hex
-from .storage import get_persistence
+from .storage.mongo_persistence import get_mongo_persistence
 
 
 class JasprChain:
