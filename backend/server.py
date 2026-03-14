@@ -125,6 +125,26 @@ async def health():
         "network": "testnet"
     }
 
+# ------------ Data Integrity Check ------------
+
+@api_router.get("/health/transactions")
+async def check_transaction_integrity():
+    """Verify no transactions are lost - BULLETPROOF CHECK"""
+    actual_count = 0
+    for block in chain.blocks:
+        txs = getattr(block, 'transactions', []) or []
+        actual_count += len(txs)
+    
+    saved_count = chain._total_transactions
+    
+    return {
+        "status": "healthy" if actual_count == saved_count else "mismatch",
+        "actual_in_blocks": actual_count,
+        "reported_total": saved_count,
+        "blocks": len(chain.blocks),
+        "wallets": len(chain._wallets)
+    }
+
 # ------------ Tokenomics ------------
 
 @api_router.get("/tokenomics")
