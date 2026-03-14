@@ -69,8 +69,8 @@ class JasprChain:
     ECOSYSTEM_PARTNERSHIPS = 50_000_000  # 5%
     
     def __init__(self):
-        # Persistence layer
-        self.persistence = get_persistence()
+        # Persistence layer - MongoDB survives deployments!
+        self.persistence = get_mongo_persistence()
         
         # Core state
         self.state = StateStore()
