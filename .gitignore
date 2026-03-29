@@ -97,3 +97,7 @@ rust-core/target/debug/deps/liblibrocksdb_sys-0b3a033249f2548c.rlib
 # Environment files
 *.env
 *.env.*
+-e 
+# Environment files
+*.env
+*.env.*
